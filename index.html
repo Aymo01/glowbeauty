@@ -1829,99 +1829,7 @@
       }
     }
 
-    /* ==========================================================================
-       SECTION 8: TESTIMONIALS DUAL MARQUEE
-       ========================================================================== */
-    .testimonials-section {
-      background-color: #0A070B;
-      padding: 100px 0;
-      border-top: 1px solid rgba(201, 116, 138, 0.08);
-      border-bottom: 1px solid rgba(201, 116, 138, 0.08);
-    }
-    
-    .testimonials-container {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-      width: 100%;
-      overflow: hidden;
-    }
-    
-    .testimonials-row {
-      display: flex;
-      width: 100%;
-      overflow: hidden;
-    }
-    
-    .testimonials-track {
-      display: flex;
-      flex-shrink: 0;
-      gap: 24px;
-      will-change: transform;
-    }
-    
-    .testimonials-rtl .testimonials-track {
-      animation: marquee-left-cards 40s linear infinite;
-    }
-    
-    .testimonials-ltr .testimonials-track {
-      animation: marquee-right-cards 40s linear infinite;
-    }
-    
-    @keyframes marquee-left-cards {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    
-    @keyframes marquee-right-cards {
-      0% { transform: translateX(-50%); }
-      100% { transform: translateX(0); }
-    }
-    
-    .testimonial-card {
-      width: 350px;
-      flex-shrink: 0;
-      background-color: var(--card-surface);
-      border: 1px solid rgba(201, 116, 138, 0.12);
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      white-space: normal;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    
-    .stars {
-      color: var(--rose-light);
-      font-size: 14px;
-      margin-bottom: 12px;
-      display: flex;
-      gap: 4px;
-    }
-    
-    .quote {
-      font-family: var(--font-body);
-      font-weight: 300;
-      font-style: italic;
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.85);
-      line-height: 1.8;
-      margin-bottom: 20px;
-      text-align: right;
-    }
-    
-    .author {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--rose-light);
-      text-align: left;
-    }
 
-    /* Pause animation on hover */
-    .testimonials-row:hover .testimonials-track {
-      animation-play-state: paused;
-    }
 
     /* ==========================================================================
        SECTION 9: CLOSING CTA (180VH STICKY ZOOM)
@@ -3196,40 +3104,7 @@
       statsObserver.observe(statsSection);
 
 
-      // ==========================================================================
-      // TESTIMONIALS CARDS MARQUEE POPULATING
-      // ==========================================================================
-      const testimonials = [
-        { name: "سارة، الرياض", quote: "هذا الزيت سحر حقيقي! شعري صار صحي ولامع بدون أي ثقل." },
-        { name: "نورة، جدة", quote: "شامبو رغوته كأنها غيمة من ذهب، ريحة الورد تجنن!" },
-        { name: "ياسمين، دبي", quote: "أفضل بلسم جربته بحياتي، التقصف اختفى تماماً من أول أسبوع." },
-        { name: "لين، الكويت", quote: "السيروم خفيف جداً ويعطي لمعة زجاجية خرافية." },
-        { name: "مريم، المنامة", quote: "عطر الشعر هذا صار إدماني اليومي، الكل يسألني وش ريحة شعرك!" },
-        { name: "شهد، مسقط", quote: "الماسك الأسبوعي هو منقذ شعري التالف من الصبغات." },
-        { name: "ديما، عمان", quote: "منتجات فاخرة وتستاهل كل ريال، روتين بسيط ونتائج فورية." },
-        { name: "ريم، الدوحة", quote: "التغليف والريحة والترطيب... كل شي يجنن ويهبل!" }
-      ];
-      
-      const testTrack1 = document.getElementById('testimonialTrack1');
-      const testTrack2 = document.getElementById('testimonialTrack2');
-      
-      // Render testimonial card HTML
-      const renderCard = (item) => `
-        <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p class="quote">"${item.quote}"</p>
-          <div class="author">${item.name}</div>
-        </div>
-      `;
-      
-      // Duplicate 4x so the -50% snap is seamless on any screen width
-      const row1Items = testimonials.slice(0, 4);
-      const row2Items = testimonials.slice(4, 8);
-      const row1Cards = [...row1Items, ...row1Items, ...row1Items, ...row1Items];
-      const row2Cards = [...row2Items, ...row2Items, ...row2Items, ...row2Items];
-      
-      testTrack1.innerHTML = row1Cards.map(renderCard).join('');
-      testTrack2.innerHTML = row2Cards.map(renderCard).join('');
+
 
       // ==========================================================================
       // CLOSING CTA STICKY ZOOM BACKGROUND
