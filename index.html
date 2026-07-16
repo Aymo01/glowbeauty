@@ -1,0 +1,4776 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glow Beauty | شعرك. من جديد.</title>
+  
+  <!-- Google Fonts: Tajawal & El Messiri -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;600;700&family=Outfit:wght@400;500&family=Tajawal:wght@200;300;400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & VARIABLES
+       ========================================================================== */
+    :root {
+      --bg-dark: #0D0A0E;
+      --card-surface: #130F16;
+      --rose-light: #F2A8A8;
+      --rose-mid: #C9748A;
+      --rose-deep: #8C3A52;
+      --rose-shimmer: linear-gradient(90deg, #8C3A52, #C9748A, #F2A8A8, #EDCAC4, #C9748A, #8C3A52);
+      --glow-color: rgba(201, 116, 138, 0.25);
+      --accent: #FF6B9D;
+      
+      --text-primary: #FFFFFF;
+      --text-muted: #D4A0A8;
+      --text-ghost: rgba(255, 255, 255, 0.35);
+      
+      --font-body: 'Tajawal', sans-serif;
+      --font-display: 'El Messiri', sans-serif;
+      
+      --ease-custom: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    /* ==========================================================================
+       GLOBAL STYLES & RESET
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 16px;
+      overflow-x: clip;
+    }
+    
+    body {
+      background-color: var(--bg-dark);
+      overflow-x: clip;
+      position: relative;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--rose-deep);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--rose-mid);
+    }
+
+    /* SVG Film Grain */
+    .noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9990;
+      opacity: 0;
+      mix-blend-mode: overlay;
+      transition: opacity 1s var(--ease-custom);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+    body.loaded .noise-overlay {
+      opacity: 0.25;
+    }
+
+    /* Ambient drifting orbs */
+    .orbs-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0;
+      background: radial-gradient(circle, var(--rose-mid) 0%, transparent 70%);
+      transition: opacity 2s var(--ease-custom);
+    }
+    body.loaded .orb {
+      opacity: 0.25;
+    }
+    .orb-1 {
+      width: 50vw;
+      height: 50vw;
+      top: -10vw;
+      right: -10vw;
+      animation: drift-1 18s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 45vw;
+      height: 45vw;
+      top: 40vh;
+      left: -15vw;
+      animation: drift-2 15s ease-in-out infinite alternate;
+    }
+    .orb-3 {
+      width: 40vw;
+      height: 40vw;
+      bottom: -10vh;
+      right: 10vw;
+      animation: drift-3 12s ease-in-out infinite alternate;
+    }
+    @keyframes drift-1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-10%, 15%) scale(1.2); }
+    }
+    @keyframes drift-2 {
+      0% { transform: translate(0, 0) scale(1.1); }
+      100% { transform: translate(15%, -10%) scale(0.9); }
+    }
+    @keyframes drift-3 {
+      0% { transform: translate(0, 0) scale(0.9); }
+      100% { transform: translate(-12%, -15%) scale(1.1); }
+    }
+
+    /* Faint Grid Lines */
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      background-image: 
+        linear-gradient(to right, rgba(201, 116, 138, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(201, 116, 138, 0.03) 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+
+    /* Progress Bar */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 2.5px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+      z-index: 999999;
+    }
+
+    /* Custom Cursor (Desktop Only) */
+    .cursor-dot {
+      width: 10px;
+      height: 10px;
+      background-color: var(--rose-light);
+      border-radius: 50%;
+      position: fixed;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999999;
+      mix-blend-mode: difference;
+      transition: width 0.2s var(--ease-custom), height 0.2s var(--ease-custom);
+    }
+    .cursor-ring {
+      width: 42px;
+      height: 42px;
+      border: 1.5px solid var(--rose-mid);
+      border-radius: 50%;
+      position: fixed;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999998;
+      transition: width 0.3s var(--ease-custom), height 0.3s var(--ease-custom), border-color 0.3s var(--ease-custom), background-color 0.3s var(--ease-custom);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg-dark);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .cursor-ring::after {
+      content: "عرض";
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    body.cursor-hover .cursor-ring {
+      width: 80px;
+      height: 80px;
+      border-color: transparent;
+      background-color: var(--rose-light);
+    }
+    body.cursor-hover .cursor-ring::after {
+      opacity: 1;
+    }
+    @media (max-width: 1024px) {
+      .cursor-dot, .cursor-ring {
+        display: none !important;
+      }
+    }
+
+    /* Shimmer Animation */
+    @keyframes shim {
+      0% { background-position: 200% center; }
+      100% { background-position: 0% center; }
+    }
+
+    /* Ambient lighting helper for sections */
+    section {
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, rgba(201, 116, 138, 0.06) 0%, var(--bg-dark) 100%);
+      padding: 100px 0;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       BUTTONS & TYPOGRAPHY
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 32px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.4s var(--ease-custom);
+      letter-spacing: 0.5px;
+    }
+    .btn-primary {
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      color: var(--bg-dark);
+      border: none;
+      box-shadow: 0 4px 15px rgba(201, 116, 138, 0.25);
+    }
+    .btn-primary:hover {
+      background-position: right center;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(201, 116, 138, 0.4), 0 0 10px var(--accent);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--rose-light);
+      border: 1.5px solid var(--rose-mid);
+    }
+    .btn-outline:hover {
+      background: rgba(201, 116, 138, 0.1);
+      border-color: var(--rose-light);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(201, 116, 138, 0.2);
+    }
+
+    .shimmer-text {
+      background: var(--rose-shimmer);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+    }
+
+    /* Scroll Reveal Animation Classes */
+    .reveal {
+      opacity: 0;
+      transform: translateY(44px);
+      transition: opacity 0.85s var(--ease-custom), transform 0.85s var(--ease-custom);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       NAVBAR
+       ========================================================================== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 90px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      transform: translateY(-100%);
+      transition: transform 0.8s var(--ease-custom), background-color 0.4s var(--ease-custom), border-bottom 0.4s var(--ease-custom), backdrop-filter 0.4s var(--ease-custom);
+    }
+    .navbar.scrolled {
+      background-color: rgba(13, 10, 14, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201, 116, 138, 0.2);
+      height: 75px;
+    }
+    .nav-container {
+      width: 90%;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    img.logo {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+      filter: 
+        saturate(1.4)
+        hue-rotate(-15deg)
+        brightness(1.15)
+        contrast(1.1)
+        drop-shadow(0 0 30px rgba(201,116,138,.75))
+        drop-shadow(0 0 70px rgba(242,168,168,.35));
+      transition: filter .4s ease;
+    }
+    img.logo:hover {
+      filter: 
+        saturate(1.5)
+        hue-rotate(-15deg)
+        brightness(1.2)
+        contrast(1.1)
+        drop-shadow(0 0 45px rgba(242,168,168,1))
+        drop-shadow(0 0 100px rgba(201,116,138,.55));
+    }
+    .nav-logo {
+      width: 160px;
+      height: auto;
+      transition: width 0.4s var(--ease-custom);
+    }
+    .navbar.scrolled .nav-logo {
+      width: 130px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 400;
+      transition: color 0.3s var(--ease-custom), text-shadow 0.3s var(--ease-custom);
+    }
+    .nav-links a:hover {
+      color: #fff;
+      text-shadow: 0 0 10px var(--rose-light);
+    }
+    .nav-btn {
+      padding: 10px 24px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .navbar {
+        height: 70px;
+      }
+      .nav-logo {
+        width: 120px;
+        height: auto;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 1: HERO
+       ========================================================================== */
+    .hero-section {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, rgba(201, 116, 138, 0.08) 0%, var(--bg-dark) 100%);
+      overflow: hidden;
+      padding: 0;
+    }
+    
+    .hero-logo-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.82) translateY(-10px);
+      width: min(420px, 85vw);
+      height: auto;
+      opacity: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      transition: transform 1s var(--ease-custom), top 1s var(--ease-custom);
+      animation: logoEntry 1s cubic-bezier(.23,1,.32,1) forwards;
+    }
+    .hero-logo {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto 44px;
+      opacity: 1;
+      animation: logoBreathe 3.5s ease-in-out infinite;
+    }
+    .hero-logo:hover {
+      animation: none;
+    }
+    
+    @keyframes logoEntry {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.82) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) translateY(0);
+      }
+    }
+    
+    @keyframes logoBreathe {
+      0%, 100% {
+        filter: saturate(1.4) hue-rotate(-15deg) brightness(1.15)
+                contrast(1.1)
+                drop-shadow(0 0 28px rgba(201,116,138,.7))
+                drop-shadow(0 0 60px rgba(201,116,138,.3));
+        transform: scale(1);
+      }
+      50% {
+        filter: saturate(1.6) hue-rotate(-15deg) brightness(1.25)
+                contrast(1.15)
+                drop-shadow(0 0 55px rgba(242,168,168,1))
+                drop-shadow(0 0 110px rgba(201,116,138,.6));
+        transform: scale(1.02);
+      }
+    }
+    body.logo-moved .hero-logo-container {
+      top: 25%;
+      transform: translate(-50%, -50%) scale(0.5);
+      transition-delay: 0ms;
+    }
+    
+    .hero-headline {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      z-index: 9;
+    }
+    .headline-word-1, .headline-word-2 {
+      font-family: var(--font-display);
+      font-size: 110px;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s var(--ease-custom), transform 0.8s var(--ease-custom);
+    }
+    .headline-word-1 {
+      color: #fff;
+    }
+    body.logo-moved .headline-word-1 {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 200ms;
+    }
+    body.logo-moved .headline-word-2 {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 280ms;
+    }
+    
+    .hero-subheadline {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      transform: translate(-50%, 20px);
+      transition: opacity 0.8s var(--ease-custom), transform 0.8s var(--ease-custom);
+      z-index: 9;
+      font-size: 18px;
+      font-weight: 200;
+      color: rgba(255, 255, 255, 0.5);
+      width: 80%;
+      max-width: 600px;
+    }
+    body.logo-moved .hero-subheadline {
+      opacity: 1;
+      transform: translate(-50%, 0);
+      transition-delay: 700ms;
+    }
+    
+    .hero-ctas {
+      position: absolute;
+      top: 74%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      opacity: 0;
+      transform: translate(-50%, 20px);
+      transition: opacity 0.8s var(--ease-custom), transform 0.8s var(--ease-custom);
+      z-index: 9;
+    }
+    body.logo-moved .hero-ctas {
+      opacity: 1;
+      transform: translate(-50%, 0);
+      transition-delay: 1000ms;
+    }
+    
+    .hero-scroll-cue {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s var(--ease-custom);
+      z-index: 9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    body.logo-moved .hero-scroll-cue {
+      opacity: 0.7;
+      transition-delay: 1400ms;
+    }
+    .scroll-cue-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .scroll-cue-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--rose-light), transparent);
+      animation: pulse-line 1.8s infinite var(--ease-custom);
+    }
+    @keyframes pulse-line {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      51% { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-logo {
+        width: 100%;
+        height: auto;
+      }
+      body.logo-moved .hero-logo-container {
+        top: 28%;
+        transform: translate(-50%, -50%) scale(0.7);
+      }
+      .hero-headline {
+        flex-direction: column;
+        gap: 0;
+        top: 40%;
+      }
+      .headline-word-1, .headline-word-2 {
+        font-size: 56px;
+        line-height: 1.1;
+      }
+      .hero-subheadline {
+        top: 65%;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .hero-ctas {
+        top: 74%;
+        flex-direction: column;
+        gap: 12px;
+        width: 80%;
+      }
+      .hero-ctas .btn {
+        width: 100%;
+        padding: 12px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 2: BOTTLE ZOOM (STICKY PINNED CONTAINER)
+       ========================================================================== */
+    .scrollytelling-wrapper {
+      height: 240vh;
+      position: relative;
+      background-color: var(--bg-dark);
+    }
+    
+    .sticky-container {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    
+    .scrolly-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 50%, rgba(201, 116, 138, 0.12) 0%, #080609 80%);
+      transform-origin: center;
+      transition: transform 0.1s ease-out;
+      z-index: 1;
+    }
+    
+    /* Central Pinned Bottle Container */
+    .bottle-zoom-container {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center;
+      transition: transform 0.1s ease-out;
+      transform: scale(0.45);
+      width: 180px;
+      height: 370px;
+    }
+    
+    .scrolly-bottle {
+      transform: scale(1.3);
+    }
+
+    .bottle-item {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      transform: scale(0.88);
+      transition: opacity .5s cubic-bezier(.23,1,.32,1),
+                  transform .5s cubic-bezier(.23,1,.32,1);
+      pointer-events: none;
+    }
+
+    .bottle-item.active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    /* Scrollytelling Panels */
+    .panels-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 6;
+      pointer-events: none;
+    }
+    
+    .panel {
+      position: absolute;
+      width: 380px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s var(--ease-custom), transform 0.8s var(--ease-custom);
+      pointer-events: none;
+      background: rgba(19, 15, 22, 0.75);
+      border: 1px solid rgba(201, 116, 138, 0.2);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .panel.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    
+    /* Panel Specific Positions */
+    /* Panel 0: Center */
+    .panel-0 {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 30px));
+      text-align: center;
+      width: 420px;
+      background: rgba(13, 10, 14, 0.85);
+    }
+    .panel-0.active {
+      transform: translate(-50%, -50%);
+    }
+
+    /* Panel 1: Right — Oil */
+    .panel-1 {
+      right: 8%;
+      top: 35%;
+    }
+
+    /* Panel 2: Left — Shampoo */
+    .panel-2 {
+      left: 8%;
+      top: 35%;
+    }
+
+    /* Panel 3: Center — OR (wider to hold two products) */
+    .panel-3 {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% + 30px));
+      width: 560px;
+      background: rgba(13, 10, 14, 0.85);
+    }
+    .panel-3.active {
+      transform: translate(-50%, -50%);
+    }
+
+    /* Panel 4: Right — Serum */
+    .panel-4 {
+      right: 8%;
+      top: 35%;
+    }
+
+    /* Panel 5: Left — Perfume */
+    .panel-5 {
+      left: 8%;
+      top: 35%;
+    }
+
+    .panel-tagline {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--rose-light);
+      margin-bottom: 8px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    
+    .panel-desc {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    
+    .panel-stat {
+      border-top: 1px solid rgba(201, 116, 138, 0.15);
+      padding-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-stat-num {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--rose-light);
+    }
+    .panel-stat-label {
+      font-size: 13px;
+      color: var(--text-ghost);
+    }
+
+    /* Progress Dots - LEFT side (RTL context, meaning left absolute anchor) */
+    .scrolly-dots {
+      position: absolute;
+      left: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 12;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid var(--rose-mid);
+      background-color: transparent;
+      cursor: pointer;
+      transition: all 0.4s var(--ease-custom);
+      position: relative;
+    }
+    
+    .progress-dot.active {
+      background-color: var(--rose-light);
+      border-color: var(--rose-light);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px var(--rose-mid);
+    }
+    
+    .progress-dot::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      right: -6px;
+      bottom: -6px;
+    }
+
+    /* OR Panel — two products side by side */
+    .or-panel {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 20px;
+    }
+    .or-option {
+      flex: 1;
+      text-align: center;
+    }
+    .or-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+    .or-vline {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(180deg, transparent, rgba(201,116,138,.45), transparent);
+    }
+    .or-word {
+      font-family: 'El Messiri', serif;
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #8C3A52, #C9748A, #F2A8A8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Double bottle container for the OR panel */
+    #bottle-wrap-double {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity .5s cubic-bezier(.23,1,.32,1);
+    }
+    #bottle-wrap-double.active {
+      opacity: 1;
+    }
+    #bottle-wrap-double .css-bottle {
+      transform: scale(0.85);
+      transform-origin: center bottom;
+    }
+
+    @media (max-width: 1024px) {
+      .panel {
+        width: 320px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .sticky-container {
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 100px 20px 60px 20px;
+      }
+      .bottle-zoom-container {
+        order: 2;
+        margin-top: -50px;
+      }
+      .panels-container {
+        position: relative;
+        order: 1;
+        width: 100%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+      }
+      .panel {
+        position: relative;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+        width: 100%;
+        max-width: 450px;
+        display: none;
+        box-shadow: none;
+      }
+      .panel.active {
+        display: block;
+      }
+      .scrolly-dots {
+        left: 20px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 3: DUAL MARQUEE STRIP
+       ========================================================================== */
+    .marquee-section {
+      padding: 40px 0;
+      background-color: #0A070B;
+      border-top: 1px solid rgba(201, 116, 138, 0.08);
+      border-bottom: 1px solid rgba(201, 116, 138, 0.08);
+      z-index: 10;
+    }
+    .marquee-row {
+      overflow: hidden;
+      width: 100%;
+      display: flex;
+      position: relative;
+    }
+    .marquee-row:first-child {
+      margin-bottom: 16px;
+    }
+    .marquee-track {
+      display: flex;
+      white-space: nowrap;
+    }
+    .marquee-track span {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      padding: 0 40px;
+      display: inline-block;
+      background: var(--rose-shimmer);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+    }
+    .marquee-rtl .marquee-track {
+      animation: marquee-left 25s linear infinite;
+    }
+    .marquee-ltr .marquee-track {
+      animation: marquee-right 25s linear infinite;
+    }
+    @keyframes marquee-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes marquee-right {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+
+    /* ==========================================================================
+       CSS BOTTLES COMPONENT
+       ========================================================================== */
+    .css-bottle {
+      position: relative;
+      width: 130px;
+      height: 380px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 10;
+      transition: transform 0.5s var(--ease-custom);
+    }
+    .card-front .css-bottle {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    .css-bottle .body {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(135deg, #1C1522 0%, #0B070E 50%, #1F1726 100%);
+      border: 1px solid rgba(201, 116, 138, 0.25);
+      box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.04), 0 15px 35px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    
+    .css-bottle .cap {
+      width: 80%;
+      height: 35px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+      border-radius: 4px 4px 1px 1px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      position: relative;
+      z-index: 3;
+    }
+    
+    .css-bottle .reflection {
+      position: absolute;
+      top: 0;
+      left: 10%;
+      width: 12px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+      transform: skewX(-4deg);
+      pointer-events: none;
+      z-index: 4;
+    }
+    
+    .css-bottle .halo {
+      position: absolute;
+      bottom: -15px;
+      width: 130%;
+      height: 25px;
+      background: radial-gradient(ellipse, rgba(201, 116, 138, 0.4) 0%, transparent 70%);
+      filter: blur(6px);
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    .bottle-label {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      text-align: center;
+      padding: 8px 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(201, 116, 138, 0.2);
+      border-radius: 4px;
+      z-index: 5;
+    }
+    .bottle-brand {
+      font-size: 11px;               /* was 7px — much bigger now */
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: rgba(201, 116, 138, 0.9);   /* brighter rose gold */
+      display: block;
+      margin-bottom: 5px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+    }
+    .bottle-line {
+      width: 50px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #C9748A, transparent);
+      margin: 4px auto;
+    }
+    .bottle-name {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #F2A8A8;
+      display: block;
+      line-height: 1.4;
+      white-space: normal;
+      max-width: 100%;
+      margin-bottom: 4px;
+    }
+    .bottle-volume {
+      font-size: 10px;               /* was 7px */
+      color: rgba(201, 116, 138, 0.75);
+      display: block;
+      letter-spacing: .15em;
+      font-family: 'Outfit', sans-serif;
+    }
+    .bottle-body {
+      width: 130px;    /* wider than before */
+      height: 340px;   /* taller to fit label */
+    }
+
+    /* 01. Dropper (Oil) */
+    .bottle-oil .body {
+      border-radius: 10px 10px 6px 6px;
+    }
+    .bottle-oil .neck {
+      width: 32px;
+      height: 12px;
+      background-color: #16101B;
+      border: 1px solid rgba(201, 116, 138, 0.25);
+      border-bottom: none;
+    }
+    .bottle-oil .cap {
+      width: 52px;
+      height: 20px;
+      border-radius: 2px;
+    }
+    .bottle-oil .dropper-bulb {
+      width: 28px;
+      height: 14px;
+      background-color: #080609;
+      border: 1.5px solid var(--rose-mid);
+      border-radius: 50% 50% 1px 1px;
+      margin-bottom: -1px;
+      z-index: 4;
+    }
+
+    /* 02. Tall Cylinder (Shampoo) */
+    .bottle-shampoo .body {
+      border-radius: 16px 16px 6px 6px;
+    }
+    .bottle-shampoo .cap {
+      width: 100px;
+      height: 20px;
+      border-radius: 8px 8px 1px 1px;
+    }
+
+    /* 03. Inverted (Conditioner) */
+    .bottle-conditioner {
+      flex-direction: column-reverse;
+      justify-content: flex-start;
+    }
+    .bottle-conditioner .body {
+      border-radius: 6px 6px 16px 16px;
+    }
+    .bottle-conditioner .cap {
+      width: 100px;
+      height: 20px;
+      border-radius: 1px 1px 8px 8px;
+      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.4);
+    }
+    .bottle-conditioner .halo {
+      bottom: auto;
+      top: -15px;
+    }
+
+    /* 04. Fluid Pump (Serum) */
+    .bottle-serum .body {
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(201, 116, 138, 0.15) 0%, rgba(11, 7, 14, 0.95) 60%), linear-gradient(to top, rgba(242, 168, 168, 0.1) 0%, transparent 100%);
+    }
+    .bottle-serum .cap {
+      width: 50px;
+      height: 30px;
+      border-radius: 2px;
+    }
+    .bottle-serum .pump-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: -1px;
+    }
+    .bottle-serum .pump-nozzle {
+      width: 26px;
+      height: 12px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      border-radius: 0 3px 3px 0;
+      margin-left: 22px;
+      margin-bottom: -2px;
+      transform: rotateY(180deg);
+      z-index: 2;
+    }
+
+    /* 05. Square Spray (Perfume) */
+    .bottle-perfume .body {
+      border-radius: 12px;
+      border: 1px solid rgba(252, 168, 168, 0.2);
+      background: radial-gradient(circle at center, rgba(201, 116, 138, 0.12) 0%, rgba(11, 7, 14, 0.98) 80%);
+    }
+    .bottle-perfume .neck {
+      width: 20px;
+      height: 12px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+    }
+    .bottle-perfume .cap {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+    }
+
+    /* 06. Cream Jar (Mask) */
+    .bottle-mask {
+      height: 170px;
+      justify-content: flex-end;
+    }
+    .bottle-mask .body {
+      border-radius: 6px 6px 12px 12px;
+    }
+    .bottle-mask .cap {
+      width: 126px;
+      height: 22px;
+      border-radius: 4px 4px 1px 1px;
+      margin-bottom: 2px;
+    }
+
+    /* Large scrolly bottle variant */
+    .scrolly-bottle {
+      width: 180px;
+      height: 370px;
+    }
+    .scrolly-bottle .body {
+      height: 230px;
+      width: 120px;
+      border-radius: 16px 16px 8px 8px;
+      border: 1.5px solid rgba(201, 116, 138, 0.35);
+    }
+    .scrolly-bottle .neck {
+      width: 30px;
+      height: 20px;
+      background-color: #16101B;
+      border: 1.5px solid rgba(201, 116, 138, 0.35);
+      border-bottom: none;
+    }
+    .scrolly-bottle .cap {
+      width: 50px;
+      height: 32px;
+      border-radius: 4px;
+    }
+    .scrolly-bottle .dropper-bulb {
+      width: 28px;
+      height: 22px;
+      background-color: #080609;
+      border: 2px solid var(--rose-mid);
+      border-radius: 50% 50% 2px 2px;
+      margin-bottom: -1px;
+      z-index: 4;
+    }
+    .scrolly-bottle .bottle-label {
+      padding: 10px 8px;
+      width: 80%;
+      border: 1.5px solid var(--rose-light);
+    }
+    .scrolly-bottle .bottle-brand {
+      font-size: 13px;
+      letter-spacing: .3em;
+    }
+    .scrolly-bottle .bottle-name {
+      font-size: 15px;
+    }
+    .scrolly-bottle .bottle-volume {
+      font-size: 12px;
+    }
+    .scrolly-bottle .bottle-line {
+      width: 50%;
+      margin: 4px auto 5px auto;
+    }
+    .scrolly-bottle .halo {
+      bottom: -20px;
+      width: 140px;
+      height: 35px;
+      background: radial-gradient(ellipse, rgba(201, 116, 138, 0.6) 0%, transparent 70%);
+      filter: blur(8px);
+    }
+
+    /* ==========================================================================
+       SECTION 4: THE 6 FLIP CARDS
+       ========================================================================== */
+    .products-section {
+      background-color: var(--bg-dark);
+      padding: 120px 0;
+    }
+    
+    .section-header {
+      text-align: center;
+      margin-bottom: 80px;
+      padding: 0 20px;
+    }
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--rose-mid);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 52px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .stagger-group {
+      /* anchor element for reveal handler */
+    }
+
+    .card-container {
+      background-color: transparent;
+      width: 100%;
+      height: 580px;
+      perspective: 1200px;
+    }
+    
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s var(--ease-custom);
+      transform-style: preserve-3d;
+    }
+    
+    /* Flip effect - hover on desktop, flipped class on touch devices */
+    @media (hover: hover) {
+      .card-container:hover .card-inner {
+        transform: rotateY(180deg);
+      }
+    }
+    .card-container.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+    
+    /* CARD FRONT */
+    .card-front {
+      background-color: var(--card-surface);
+      border: 1px solid rgba(201, 116, 138, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 35px 30px;
+      transition: border-color 0.4s var(--ease-custom), box-shadow 0.4s var(--ease-custom);
+      transform: translate3d(0, 0, 1px);
+    }
+    .card-container:hover .card-front {
+      border-color: var(--rose-mid);
+      box-shadow: 0 0 40px rgba(201, 116, 138, 0.35);
+    }
+    .card-front::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+    }
+    
+    .card-num {
+      align-self: flex-start;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--rose-mid);
+    }
+    
+    .card-front-content {
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .product-title {
+      font-family: 'El Messiri', sans-serif;
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      white-space: nowrap;      /* no line break */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-align: center;
+    }
+    
+    .card-prod-tag {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+    
+    .card-prod-price {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* CARD BACK */
+    .card-back {
+      background: linear-gradient(135deg, #18101E 0%, #0F0814 100%);
+      border: 2px solid var(--rose-mid);
+      box-shadow: 0 0 30px rgba(201, 116, 138, 0.2);
+      transform: rotateY(180deg) translate3d(0, 0, 1px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 30px;
+    }
+    
+    .card-back-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      border-bottom: 1px solid rgba(201, 116, 138, 0.15);
+      padding-bottom: 12px;
+    }
+    
+    .card-back-desc {
+      font-size: 15px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.9;
+      text-align: right;
+      margin: 20px 0;
+    }
+    
+    .card-back-ctas {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+    .btn-add-cart {
+      width: 100%;
+      font-size: 14px;
+      padding: 12px;
+    }
+    .discover-link {
+      color: var(--rose-light);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: color 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .discover-link:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 1024px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+      }
+    }
+    @media (max-width: 768px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+      }
+      .section-title {
+        font-size: 38px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 5: ROTATING WORD (100VH STICKY ZOOM)
+       ========================================================================== */
+    .word-section {
+      height: 200vh;
+      position: relative;
+      background-color: var(--bg-dark);
+      padding: 0;
+      overflow: visible;
+    }
+    
+    .sticky-word-container {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      z-index: 10;
+    }
+    
+    .word-eyebrow {
+      font-size: 20px;
+      font-weight: 200;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    
+    .word-wrapper {
+      height: 250px;
+      width: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center;
+      transition: transform 0.1s ease-out;
+    }
+    
+    .rotating-word {
+      font-family: var(--font-display);
+      font-size: 160px;
+      font-weight: 700;
+      position: absolute;
+      text-align: center;
+      white-space: nowrap;
+      transition: transform 0.8s var(--ease-custom), opacity 0.8s var(--ease-custom);
+      opacity: 0.04;
+      transform: translateY(0) scale(1);
+    }
+    
+    .rotating-word.enter {
+      transform: translateY(60px) scale(0.8);
+      opacity: 0;
+    }
+    .rotating-word.active {
+      transform: translateY(0) scale(1);
+      opacity: 0.22;
+    }
+    .rotating-word.exit {
+      transform: translateY(-60px) scale(0.8);
+      opacity: 0;
+    }
+    
+    .word-cta-btn {
+      margin-top: 40px;
+      z-index: 5;
+    }
+
+    @media (max-width: 1024px) {
+      .rotating-word {
+        font-size: 110px;
+      }
+    }
+    @media (max-width: 768px) {
+      .rotating-word {
+        font-size: 70px;
+      }
+      .word-eyebrow {
+        font-size: 16px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 6: STATS BAND
+       ========================================================================== */
+    .stats-section {
+      background-color: #0B080C;
+      border-top: 1px solid rgba(201, 116, 138, 0.08);
+      border-bottom: 1px solid rgba(201, 116, 138, 0.08);
+      padding: 80px 20px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .stat-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 68px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    
+    .stat-label {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+    
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+      }
+    }
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .stat-number {
+        font-size: 52px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 7: INGREDIENTS Grid
+       ========================================================================== */
+    .ingredients-section {
+      background-color: var(--bg-dark);
+      padding: 120px 0;
+    }
+    
+    .ingredients-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .ingredient-card {
+      position: relative;
+      background-color: var(--card-surface);
+      border: 1px solid rgba(201, 116, 138, 0.15);
+      border-radius: 16px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: transform 0.4s var(--ease-custom), box-shadow 0.4s var(--ease-custom), border-color 0.4s var(--ease-custom);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .ingredient-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(201, 116, 138, 0.15);
+      border-color: var(--rose-mid);
+    }
+    
+    .ingredient-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 2.5px;
+      background: var(--rose-shimmer);
+      background-size: 200% auto;
+      transition: width 0.4s var(--ease-custom);
+    }
+    .ingredient-card:hover::after {
+      width: 100%;
+    }
+    
+    .ingredient-icon {
+      font-size: 24px;
+      color: var(--rose-light);
+      margin-bottom: 16px;
+    }
+    
+    .ingredient-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    @media (max-width: 1024px) {
+      .ingredients-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .ingredients-grid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+      }
+    }
+
+    /* ==========================================================================
+       SECTION 8: TESTIMONIALS DUAL MARQUEE
+       ========================================================================== */
+    .testimonials-section {
+      background-color: #0A070B;
+      padding: 100px 0;
+      border-top: 1px solid rgba(201, 116, 138, 0.08);
+      border-bottom: 1px solid rgba(201, 116, 138, 0.08);
+    }
+    
+    .testimonials-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .testimonials-row {
+      display: flex;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .testimonials-track {
+      display: flex;
+      flex-shrink: 0;
+      gap: 24px;
+      will-change: transform;
+    }
+    
+    .testimonials-rtl .testimonials-track {
+      animation: marquee-left-cards 40s linear infinite;
+    }
+    
+    .testimonials-ltr .testimonials-track {
+      animation: marquee-right-cards 40s linear infinite;
+    }
+    
+    @keyframes marquee-left-cards {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    
+    @keyframes marquee-right-cards {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+    
+    .testimonial-card {
+      width: 350px;
+      flex-shrink: 0;
+      background-color: var(--card-surface);
+      border: 1px solid rgba(201, 116, 138, 0.12);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      white-space: normal;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .stars {
+      color: var(--rose-light);
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 4px;
+    }
+    
+    .quote {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-style: italic;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.8;
+      margin-bottom: 20px;
+      text-align: right;
+    }
+    
+    .author {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--rose-light);
+      text-align: left;
+    }
+
+    /* Pause animation on hover */
+    .testimonials-row:hover .testimonials-track {
+      animation-play-state: paused;
+    }
+
+    /* ==========================================================================
+       SECTION 9: CLOSING CTA (180VH STICKY ZOOM)
+       ========================================================================== */
+    .cta-section {
+      height: 180vh;
+      position: relative;
+      background-color: var(--bg-dark);
+      padding: 0;
+      overflow: visible;
+    }
+    
+    .sticky-cta-container {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      z-index: 10;
+    }
+    
+    .cta-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(201, 116, 138, 0.22) 0%, var(--bg-dark) 80%);
+      z-index: 1;
+      transform-origin: center;
+      transition: transform 0.1s ease-out;
+    }
+    
+    .cta-content {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 90%;
+      max-width: 900px;
+    }
+    
+    .cta-logo {
+      width: 220px;
+      height: auto;
+      margin-bottom: 30px;
+    }
+    
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: 100px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    
+    .cta-bullets {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      display: flex;
+      gap: 16px;
+    }
+    .cta-bullets span::after {
+      content: " ·";
+    }
+    .cta-bullets span:last-child::after {
+      content: "";
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .cta-title {
+        font-size: 56px;
+      }
+      .cta-logo {
+        width: 150px;
+        height: auto;
+      }
+      .cta-bullets {
+        font-size: 13px;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .cta-bullets span::after {
+        content: "";
+      }
+      .cta-buttons {
+        flex-direction: column;
+        width: 80%;
+      }
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .footer {
+      background-color: #080609;
+      border-top: 1px solid rgba(201, 116, 138, 0.25);
+      padding: 60px 0 30px 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .footer-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+    
+    .footer-logo {
+      width: 220px;
+      height: auto;
+      opacity: 0.88;
+      transition: opacity 0.3s;
+    }
+    .footer-logo:hover {
+      opacity: 1;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 40px;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    .footer-copyright {
+      font-size: 13px;
+      color: var(--text-ghost);
+      border-top: 1px solid rgba(201, 116, 138, 0.1);
+      width: 100%;
+      text-align: center;
+      padding-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      .footer-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Noise Film Grain -->
+  <div class="noise-overlay"></div>
+
+  <!-- Ambient Drifting Orbs -->
+  <div class="orbs-container">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Grid Overlay -->
+  <div class="grid-overlay"></div>
+
+  <!-- Custom Cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ==========================================================================
+       NAVBAR
+       ========================================================================== */ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-right">
+        <a href="#">
+          <img src="logo.png" alt="Glow Beauty" class="logo nav-logo" />
+        </a>
+      </div>
+      <div class="nav-left">
+        <div class="nav-links">
+          <a href="#products">منتجاتنا</a>
+          <a href="#ingredients">مكوناتنا</a>
+          <a href="#story">قصتنا</a>
+        </div>
+        <a href="#cta" class="btn btn-outline nav-btn">تسوّقي الآن</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================
+       SECTION 1: HERO
+       ========================================================================== */ -->
+  <section class="hero-section" id="hero">
+    <div class="hero-logo-container" id="heroLogoContainer">
+      <img src="logo.png" alt="Glow Beauty" class="logo hero-logo" />
+    </div>
+    
+    <div class="hero-headline">
+      <div class="headline-word-1">شعرك.</div>
+      <div class="headline-word-2 shimmer-text">من جديد.</div>
+    </div>
+    
+    <div class="hero-subheadline">
+      ستة منتجات. صفر تنازلات. روتين واحد.
+    </div>
+    
+    <div class="hero-ctas">
+      <a href="#scrollytelling-wrapper" class="btn btn-primary">ابدئي روتينك</a>
+      <a href="#products" class="btn btn-outline">استعرضي المجموعة</a>
+    </div>
+    
+    <div class="hero-scroll-cue">
+      <span class="scroll-cue-text">اسحبي للأسفل</span>
+      <div class="scroll-cue-line"></div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 2: BOTTLE ZOOM (SCROLLYTELLING)
+       ========================================================================== */ -->
+  <div class="scrollytelling-wrapper" id="scrollytelling-wrapper">
+    <div class="sticky-container">
+      
+      <!-- Zooming background -->
+      <div class="scrolly-bg" id="scrollyBg"></div>
+      
+      <!-- Central Pinned Bottle -->
+      <div class="bottle-zoom-container" id="bottleZoomContainer">
+        
+        <!-- Bottle 01 (Oil) -->
+        <div class="bottle-item active" data-index="0">
+          <div class="css-bottle bottle-oil scrolly-bottle">
+            <div class="dropper-bulb"></div>
+            <div class="cap"></div>
+            <div class="neck"></div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">زيت إنبات الشعر</span>
+                <span class="bottle-volume">50 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+        <!-- Bottle 02 (Shampoo) -->
+        <div class="bottle-item" data-index="1">
+          <div class="css-bottle bottle-shampoo scrolly-bottle">
+            <div class="cap"></div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">شامبو الشعر</span>
+                <span class="bottle-volume">500 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+        <!-- Bottle 03 (Conditioner) -->
+        <div class="bottle-item" data-index="2">
+          <div class="css-bottle bottle-conditioner scrolly-bottle">
+            <div class="cap"></div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">بلسم الشعر</span>
+                <span class="bottle-volume">500 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+        <!-- Bottle 04 (Serum) -->
+        <div class="bottle-item" data-index="3">
+          <div class="css-bottle bottle-serum scrolly-bottle">
+            <div class="pump-head">
+              <div class="pump-nozzle"></div>
+              <div class="cap"></div>
+            </div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">سيروم الشعر</span>
+                <span class="bottle-volume">120 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+        <!-- Bottle 05 (Perfume) -->
+        <div class="bottle-item" data-index="4">
+          <div class="css-bottle bottle-perfume scrolly-bottle">
+            <div class="cap"></div>
+            <div class="neck"></div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">عطر الشعر</span>
+                <span class="bottle-volume">100 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+        <!-- Bottle 06 (Mask) -->
+        <div class="bottle-item" data-index="5">
+          <div class="css-bottle bottle-mask scrolly-bottle">
+            <div class="cap"></div>
+            <div class="body">
+              <div class="bottle-label">
+                <span class="bottle-brand">GLOW</span>
+                <div class="bottle-line"></div>
+                <span class="bottle-name">ماسك الشعر</span>
+                <span class="bottle-volume">500 ml</span>
+              </div>
+              <div class="reflection"></div>
+            </div>
+            <div class="halo"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Double-bottle container for OR panel (mask + conditioner) -->
+      <div id="bottle-wrap-double">
+        <!-- Mask bottle (left) -->
+        <div class="css-bottle bottle-mask scrolly-bottle">
+          <div class="cap"></div>
+          <div class="body">
+            <div class="bottle-label">
+              <span class="bottle-brand">GLOW</span>
+              <div class="bottle-line"></div>
+              <span class="bottle-name">ماسك الشعر</span>
+              <span class="bottle-volume">500 ml</span>
+            </div>
+            <div class="reflection"></div>
+          </div>
+          <div class="halo"></div>
+        </div>
+        <!-- Conditioner bottle (right) -->
+        <div class="css-bottle bottle-conditioner scrolly-bottle">
+          <div class="cap"></div>
+          <div class="body">
+            <div class="bottle-label">
+              <span class="bottle-brand">GLOW</span>
+              <div class="bottle-line"></div>
+              <span class="bottle-name">بلسم الشعر</span>
+              <span class="bottle-volume">500 ml</span>
+            </div>
+            <div class="reflection"></div>
+          </div>
+          <div class="halo"></div>
+        </div>
+      </div>
+      
+      <!-- Panels contents (5 panels: 0=intro, 1=oil, 2=shampoo, 3=OR, 4=serum, 5=perfume) -->
+      <div class="panels-container">
+
+        <!-- Panel 0: Center intro -->
+        <div class="panel panel-0 active">
+          <div class="panel-tagline">روتينك يبدأ هنا</div>
+          <h2 class="panel-title">المجموعة الكاملة</h2>
+          <p class="panel-desc">
+            ستة منتجات فاخرة تعمل معاً لتمنح شعرك التغذية، اللمعان، والجاذبية التي تستحقّها.
+          </p>
+        </div>
+
+        <!-- Panel 1: Right — Oil -->
+        <div class="panel panel-1">
+          <div class="panel-tagline">خطوة ٠١ / التغذية والنمو</div>
+          <h2 class="panel-title">زيت إنبات الشعر</h2>
+          <p class="panel-desc">
+            زيت نمو الشعر الفاخر يغذي جذور الشعر بعمق ويسرّع معدل النمو الطبيعي بفضل مستخلص الأرغان والخروع المركز.
+          </p>
+          <div class="panel-stat">
+            <span class="panel-stat-num shimmer-text">٩٤٪</span>
+            <span class="panel-stat-label">نعومة وكثافة خلال أسبوعين فقط</span>
+          </div>
+        </div>
+
+        <!-- Panel 2: Left — Shampoo -->
+        <div class="panel panel-2">
+          <div class="panel-tagline">خطوة ٠٢ / التنظيف اللطيف</div>
+          <h2 class="panel-title">شامبو الشعر</h2>
+          <p class="panel-desc">
+            شامبو فاخر بملمس رغوة الذهب ينظف خصلات شعرك بلطف فائق دون سحب رطوبته الطبيعية.
+          </p>
+          <div class="panel-stat">
+            <span class="panel-stat-num shimmer-text">٠٪</span>
+            <span class="panel-stat-label">كبريتات، سيليكون، أو كيماويات ضارة</span>
+          </div>
+        </div>
+
+        <!-- Panel 3: Center — OR (Mask + Conditioner) -->
+        <div class="panel panel-3">
+          <div class="panel-tagline">خطوة ٠٣ / اختاري ما يناسبك</div>
+          <div class="or-panel">
+            <!-- Mask -->
+            <div class="or-option">
+              <h2 class="panel-title" style="font-size:22px;">ماسك الشعر</h2>
+              <p class="panel-desc" style="font-size:13px;margin-bottom:12px;">
+                ماسك ترطيب عميق بالببتيد وبذر الكتان يُجدد الشعر من الداخل.
+              </p>
+              <div class="panel-stat">
+                <span class="panel-stat-num shimmer-text">₪50</span>
+                <span class="panel-stat-label">500 ml</span>
+              </div>
+            </div>
+            <!-- أو divider -->
+            <div class="or-mid">
+              <div class="or-vline"></div>
+              <span class="or-word">أو</span>
+              <div class="or-vline"></div>
+            </div>
+            <!-- Conditioner -->
+            <div class="or-option">
+              <h2 class="panel-title" style="font-size:22px;">بلسم الشعر</h2>
+              <p class="panel-desc" style="font-size:13px;margin-bottom:12px;">
+                بلسم مكثّف بالكيراتين يُعيد للشعر نعومته ويُقلّل التقصّف من أول استخدام.
+              </p>
+              <div class="panel-stat">
+                <span class="panel-stat-num shimmer-text">₪30</span>
+                <span class="panel-stat-label">500 ml</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 4: Right — Serum -->
+        <div class="panel panel-4">
+          <div class="panel-tagline">خطوة ٠٤ / اللمعان الفائق</div>
+          <h2 class="panel-title">سيروم الشعر</h2>
+          <p class="panel-desc">
+            سيروم خفيف يغلف الشعر ليحميه من الحرارة ومصففات الشعر ويمنحه لمعاناً زجاجياً فورياً يدوم طويلاً.
+          </p>
+          <div class="panel-stat">
+            <span class="panel-stat-num shimmer-text">١٠٠٪</span>
+            <span class="panel-stat-label">لمعان وحماية من الحرارة والرطوبة</span>
+          </div>
+        </div>
+
+        <!-- Panel 5: Left — Perfume -->
+        <div class="panel panel-5">
+          <div class="panel-tagline">خطوة ٠٥ / الجاذبية والانتعاش</div>
+          <h2 class="panel-title">عطر الشعر</h2>
+          <p class="panel-desc">
+            نفحات ساحرة من الورد والمسك تمنح شعرك رائحة منعشة تدوم طوال اليوم مع لمعان ناعم.
+          </p>
+          <div class="panel-stat">
+            <span class="panel-stat-num shimmer-text">٢٤ ساعة</span>
+            <span class="panel-stat-label">ثبات وانتعاش فائق الجاذبية لشعرك</span>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Progress Dots Left Side (5 dots for 5 content panels 1-5, plus intro 0) -->
+      <div class="scrolly-dots">
+        <div class="progress-dot active" data-index="0"></div>
+        <div class="progress-dot" data-index="1"></div>
+        <div class="progress-dot" data-index="2"></div>
+        <div class="progress-dot" data-index="3"></div>
+        <div class="progress-dot" data-index="4"></div>
+        <div class="progress-dot" data-index="5"></div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SECTION 3: DUAL MARQUEE STRIP
+       ========================================================================== */ -->
+  <div class="marquee-section">
+    <div class="marquee-row marquee-rtl">
+      <div class="marquee-track" id="marqueeTrack1">
+        <!-- Text content will be populated and duplicated via JS for seamless flow -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SECTION 4: THE 6 FLIP CARDS
+       ========================================================================== */ -->
+  <section class="products-section" id="products">
+    <div class="section-header reveal">
+      <span class="eyebrow">المجموعة الكاملة</span>
+      <h2 class="section-title shimmer-text">ستة طرق للتألّق.</h2>
+    </div>
+    
+    <!-- Bundle Package Card -->
+    <div class="bundle-card reveal" style="max-width: 800px; margin: 0 auto 48px auto; padding: 48px; background: linear-gradient(135deg, #1a0f1a, #130F16); border: 2px solid rgba(201,116,138,.4); border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 0 60px rgba(201,116,138,.12), 0 0 120px rgba(201,116,138,.06);">
+      <div class="popup-accent-bar" style="position: absolute; top:0; left:0; right:0; height: 3px; background: linear-gradient(90deg, transparent,#8C3A52,#C9748A, #F2A8A8,#C9748A,#8C3A52,transparent); border-radius: 0;"></div>
+      <div class="bundle-badge" style="position: absolute; top:0; right: 32px; background: linear-gradient(90deg,#8C3A52,#C9748A); color: white; padding: 6px 20px; border-radius: 0 0 12px 12px; font-family: Tajawal, sans-serif; font-size: 13px; font-weight: 700; z-index: 10;">⭐ عرض خاص</div>
+      
+      <div class="bundle-layout">
+        <!-- Left side -->
+        <div class="bundle-left">
+          <span class="bundle-eyebrow" style="display: block; font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: rgba(201,116,138,.7); margin-bottom: 14px; font-family: Tajawal, sans-serif;">المجموعة الكاملة</span>
+          <h3 class="bundle-title shimmer-text" style="font-family: 'El Messiri', serif; font-size: 38px; font-weight: 700; margin-bottom: 20px; line-height: 1.2;">بكج العناية الكاملة</h3>
+          
+          <div class="bundle-items-list">
+            <div class="bundle-item-line" style="font-family: Tajawal, sans-serif; font-size: 15px; color: rgba(255,255,255,.65); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; direction: rtl;">
+              <span style="color: #C9748A; font-size: 12px;">✦</span>
+              <span>شامبو الشعر 500ml</span>
+            </div>
+            <div class="bundle-item-line" style="font-family: Tajawal, sans-serif; font-size: 15px; color: rgba(255,255,255,.65); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; direction: rtl;">
+              <span style="color: #C9748A; font-size: 12px;">✦</span>
+              <span>بلسم الشعر 500ml</span>
+            </div>
+            <div class="bundle-item-line" style="font-family: Tajawal, sans-serif; font-size: 15px; color: rgba(255,255,255,.65); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; direction: rtl;">
+              <span style="color: #C9748A; font-size: 12px;">✦</span>
+              <span>ماسك الشعر 500ml</span>
+            </div>
+            <div class="bundle-item-line" style="font-family: Tajawal, sans-serif; font-size: 15px; color: rgba(255,255,255,.65); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; direction: rtl;">
+              <span style="color: #C9748A; font-size: 12px;">✦</span>
+              <span>سيروم الشعر 120ml</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right side -->
+        <div class="bundle-right" style="text-align: center;">
+          <span style="display: block; font-family: Tajawal, sans-serif; font-size: 13px; color: rgba(255,255,255,.4); letter-spacing: .1em; margin-bottom: 8px;">السعر الكلي</span>
+          <span class="shimmer-text" style="font-family: 'El Messiri', serif; font-size: 64px; font-weight: 700; direction: ltr; display: block; line-height: 1;">₪120</span>
+          <span style="display: block; font-family: Tajawal, sans-serif; font-size: 13px; color: rgba(255,255,255,.35); margin-top: 6px; margin-bottom: 24px;">للمجموعة كاملة</span>
+          
+          <button class="bundle-btn" onclick="addBundleToBasket()">أضف البكج للسلة 🛒</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-grid stagger-group">
+      
+      <!-- Card 01 -->
+      <div class="card-container reveal" data-product="زيت إنبات الشعر" data-volume="50 ml" data-price="₪40" data-index="0">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠١</span>
+            <div class="css-bottle bottle-oil">
+              <div class="dropper-bulb"></div>
+              <div class="cap"></div>
+              <div class="neck"></div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">زيت إنبات الشعر</span>
+                  <span class="bottle-volume">50 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">زيت إنبات الشعر</h3>
+              <p class="card-prod-tag">"من الجذر للأطراف"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪40</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">زيت إنبات الشعر</h3>
+            <div class="size-selector" data-product-id="0">
+              <button class="size-btn active" onclick="selectSize(event, 0, '50ml', 40, this)">50ml — ₪40</button>
+              <button class="size-btn" onclick="selectSize(event, 0, '120ml', 60, this)">120ml — ₪60</button>
+            </div>
+            <p class="card-back-desc">
+              زيت فاخر مُصنَّع من أنقى مستخلصات الأرغان والخروع الطبيعية. يغذي بصلات الشعر بعمق لتحفيز نمو صحي سريع وتعزيز كثافته وحمايته من التساقط.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 02 -->
+      <div class="card-container reveal" data-product="شامبو الشعر" data-volume="500 ml" data-price="₪50" data-index="1">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠٢</span>
+            <div class="css-bottle bottle-shampoo">
+              <div class="cap"></div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">شامبو الشعر</span>
+                  <span class="bottle-volume">500 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">شامبو الشعر</h3>
+              <p class="card-prod-tag">"رغوة من ذهب"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪50</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">شامبو الشعر</h3>
+            <p class="card-back-desc">
+              شامبو غني خالٍ تماماً من الكبريتات والبارابين. ينظّف فروة الرأس والشعر عميقاً ويزيل الشوائب دون أن يسلب رطوبة شعرك الطبيعية الغنية.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 03 -->
+      <div class="card-container reveal" data-product="بلسم الشعر" data-volume="500 ml" data-price="₪30" data-index="2">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠٣</span>
+            <div class="css-bottle bottle-conditioner">
+              <div class="cap"></div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">بلسم الشعر</span>
+                  <span class="bottle-volume">500 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">بلسم الشعر</h3>
+              <p class="card-prod-tag">"حرير، مش تنازل"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪30</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">بلسم الشعر</h3>
+            <p class="card-back-desc">
+              بلسم مكثّف معزز بجزيئات الكيراتين النقي وبروتين القمح. يُعيد للشعر التالف نعومته الفائقة ويُقلّل التقصف ويسهّل تسريحه من الاستخدام الأول.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 04 -->
+      <div class="card-container reveal" data-product="سيروم الشعر" data-volume="120 ml" data-price="₪30" data-index="3">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠٤</span>
+            <div class="css-bottle bottle-serum">
+              <div class="pump-head">
+                <div class="pump-nozzle"></div>
+                <div class="cap"></div>
+              </div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">سيروم الشعر</span>
+                  <span class="bottle-volume">120 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">سيروم الشعر</h3>
+              <p class="card-prod-tag">"شعر زجاجي كل يوم"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪30</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">سيروم الشعر</h3>
+            <p class="card-back-desc">
+              سيروم حريري خفيف التركيبة يُغلّف خصلات الشعر ليعطي لمعاناً زجاجياً فورياً. يحمي بكفاءة من حرارة مصففات الشعر والعوامل البيئية الضارة.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 05 -->
+      <div class="card-container reveal" data-product="عطر الشعر" data-volume="120 ml" data-price="₪30" data-index="4">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠٥</span>
+            <div class="css-bottle bottle-perfume">
+              <div class="cap"></div>
+              <div class="neck"></div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">عطر الشعر</span>
+                  <span class="bottle-volume">120 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">عطر الشعر</h3>
+              <p class="card-prod-tag">"رائحة تفضل"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪30</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">عطر الشعر</h3>
+            <p class="card-back-desc">
+              عطر شعر فاخر بنفحات جذابة من الورد البلغاري والمسك الأبيض والياسمين. يدوم طوال اليوم ويضفي بريقاً ولمعاناً فائق النعومة لشعرك.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 06 -->
+      <div class="card-container reveal" data-product="ماسك الشعر" data-volume="500 ml" data-price="₪50" data-index="5">
+        <div class="card-inner">
+          <!-- Front -->
+          <div class="card-front">
+            <span class="card-num">٠٦</span>
+            <div class="css-bottle bottle-mask">
+              <div class="cap"></div>
+              <div class="body bottle-body">
+                <div class="bottle-label">
+                  <span class="bottle-brand">GLOW</span>
+                  <div class="bottle-line"></div>
+                  <span class="bottle-name">ماسك الشعر</span>
+                  <span class="bottle-volume">500 ml</span>
+                </div>
+                <div class="reflection"></div>
+              </div>
+              <div class="halo"></div>
+            </div>
+            <div class="card-front-content">
+              <h3 class="product-title">ماسك الشعر</h3>
+              <p class="card-prod-tag">"الروتين الأسبوعي"</p>
+            </div>
+            <span class="price card-prod-price shimmer-text" dir="ltr">₪50</span>
+          </div>
+          <!-- Back -->
+          <div class="card-back">
+            <h3 class="card-back-title">ماسك الشعر</h3>
+            <div class="size-selector" data-product-id="5">
+              <button class="size-btn" onclick="selectSize(event, 5, '250ml', 40, this)">250ml — ₪40</button>
+              <button class="size-btn active" onclick="selectSize(event, 5, '500ml', 50, this)">500ml — ₪50</button>
+            </div>
+            <p class="card-back-desc">
+              ماسك مغذي للغاية للترطيب العميق غني بالببتيدات المركبة ومستخلص بذر الكتان. يتغلغل في ألياف الشعر ليجدد قوتها وحيويتها من الداخل.
+            </p>
+            <div class="card-back-ctas">
+              <button class="btn btn-primary btn-add-cart">أضف للسلة</button>
+              <a href="#" class="discover-link">اكتشفي أكثر ←</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 5: ROTATING WORD (STICKY ZOOM)
+       ========================================================================== */ -->
+  <section class="word-section" id="story">
+    <div class="sticky-word-container">
+      <div class="word-eyebrow reveal">شعرك يستحق كلمة واحدة فقط.</div>
+      
+      <div class="word-wrapper" id="rotatingWordWrapper">
+        <div class="rotating-word active" id="rotatingWord">حرير</div>
+      </div>
+      
+      <a href="#products" class="btn btn-primary word-cta-btn reveal">تسوّقي الآن</a>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 6: STATS BAND
+       ========================================================================== */ -->
+  <section class="stats-section" id="stats-section">
+    <div class="stats-grid">
+      
+      <div class="stat-item">
+        <div class="stat-number shimmer-text" data-target="6" data-start="0" data-suffix="">0</div>
+        <div class="stat-label">منتجات متكاملة</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-number shimmer-text" data-target="0" data-start="100" data-suffix="%">100%</div>
+        <div class="stat-label">كبريتات وسيليكون ومواد كيميائية</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-number shimmer-text" data-target="1" data-start="0" data-suffix="">0</div>
+        <div class="stat-label">روتين واحد يغيّر كل شيء</div>
+      </div>
+      
+    </div>
+  </section>
+
+
+
+
+  <!-- ==========================================================================
+       SECTION 8: TESTIMONIALS DUAL MARQUEE
+       ========================================================================== */ -->
+  <section class="testimonials-section">
+    <div class="section-header reveal">
+      <span class="eyebrow">آراء من جربوا السحر</span>
+      <h2 class="section-title shimmer-text">عائلتنا تتحدّث.</h2>
+    </div>
+    
+    <div class="testimonials-container">
+      
+      <!-- Row 1: RTL -->
+      <div class="testimonials-row testimonials-rtl">
+        <div class="testimonials-track" id="testimonialTrack1">
+          <!-- Populated by JS for infinite marquee -->
+        </div>
+      </div>
+      
+      <!-- Row 2: LTR -->
+      <div class="testimonials-row testimonials-ltr">
+        <div class="testimonials-track" id="testimonialTrack2">
+          <!-- Populated by JS for infinite marquee -->
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 9: CLOSING CTA (180VH STICKY ZOOM)
+       ========================================================================== */ -->
+  <section class="cta-section" id="cta">
+    <div class="sticky-cta-container">
+      <div class="cta-bg" id="ctaBg"></div>
+      
+      <div class="cta-content">
+        <img src="logo.png" alt="Glow Beauty" class="logo cta-logo reveal" />
+        
+        <h2 class="cta-title shimmer-text reveal">
+          روتينك.<br>يبدأ الآن.
+        </h2>
+        
+        <p class="cta-bullets reveal">
+          <span>شحن مجاني لكافة المناطق</span>
+          <span>خالٍ من الكبريتات</span>
+          <span>بدون أي تنازلات</span>
+        </p>
+        
+        <div class="cta-buttons reveal">
+          <a href="#scrollytelling-wrapper" class="btn btn-primary">ابدئي روتينك الخاص</a>
+          <a href="#products" class="btn btn-outline">استكشفي المجموعة الكاملة</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== */ -->
+  <footer class="footer">
+    <div class="footer-container">
+      <img src="logo.png" alt="Glow Beauty" class="logo footer-logo" />
+      
+      <div class="footer-links">
+        <a href="#products">المنتجات</a>
+        <a href="#ingredients">المكونات</a>
+        <a href="#story">قصتنا</a>
+        <a href="#cta">التواصل</a>
+      </div>
+      
+      <div class="footer-copyright">
+        © ٢٠٢٥ Glow Beauty. كل الحقوق محفوظة.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC
+       ========================================================================== */ -->
+  <script>
+    (function() {
+      
+      // ==========================================================================
+      // PRODUCTS DATA
+      // ==========================================================================
+      const products = [
+        {
+          name:   'زيت إنبات الشعر',
+          volume: '50 ml',
+          price:  '₪40',
+        },
+        {
+          name:   'شامبو الشعر',
+          volume: '500 ml',
+          price:  '₪50',
+        },
+        {
+          name:   'بلسم الشعر',
+          volume: '500 ml',
+          price:  '₪30',
+        },
+        {
+          name:   'سيروم الشعر',
+          volume: '120 ml',
+          price:  '₪30',
+        },
+        {
+          name:   'عطر الشعر',
+          volume: '100 ml',
+          price:  '₪30',
+        },
+        {
+          name:   'ماسك الشعر',
+          volume: '500 ml',
+          price:  '₪50',
+        },
+      ];
+
+      // ==========================================================================
+      // PAGE LOAD TIMING SEQUENCE
+      // ==========================================================================
+      setTimeout(() => {
+        document.body.classList.add('loaded');
+      }, 50);
+
+      setTimeout(() => {
+        document.body.classList.add('logo-moved');
+      }, 1200);
+
+      // ==========================================================================
+      // DYNAMIC DESIGN: CUSTOM CURSOR
+      // ==========================================================================
+      const cursorDot = document.getElementById('cursorDot');
+      const cursorRing = document.getElementById('cursorRing');
+      
+      let mouseX = 0, mouseY = 0;
+      let ringX = 0, ringY = 0;
+      
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        
+        cursorDot.style.left = `${mouseX}px`;
+        cursorDot.style.top = `${mouseY}px`;
+      });
+      
+      // Lagging Ring Interpolation (buttery smooth follow)
+      function animateRing() {
+        const easing = 0.15; // interpolation weight
+        ringX += (mouseX - ringX) * easing;
+        ringY += (mouseY - ringY) * easing;
+        
+        cursorRing.style.left = `${ringX}px`;
+        cursorRing.style.top = `${ringY}px`;
+        
+        requestAnimationFrame(animateRing);
+      }
+      animateRing();
+      
+      // Expand cursor on hoverable items
+      const hoverables = document.querySelectorAll('a, button, .card-container, .progress-dot, .nav-logo, .footer-logo, .cta-logo, .ingredient-card');
+      hoverables.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+          document.body.classList.add('cursor-hover');
+        });
+        item.addEventListener('mouseleave', () => {
+          document.body.classList.remove('cursor-hover');
+        });
+      });
+
+      // ==========================================================================
+      // STICKY BOTTLE ZOOM (SCALE.COM EFFECT) & PROGRESS DOTS
+      // ==========================================================================
+      const scrollytellingWrapper = document.getElementById('scrollytelling-wrapper');
+      const scrollyBg = document.getElementById('scrollyBg');
+      const bottleZoomContainer = document.getElementById('bottleZoomContainer');
+      const panels = document.querySelectorAll('.panel');
+      const progressDots = document.querySelectorAll('.progress-dot');
+      
+      // Bottle switcher logic
+      const bottleItems = document.querySelectorAll('.bottle-item');
+      const bottleWrapDouble = document.getElementById('bottle-wrap-double');
+      let currentBottle = 0;
+      let doubleVisible = false;
+
+      // Panel-index → bottle-item index map:
+      // panel 0 (intro)    → bottle 0 (Oil)
+      // panel 1 (Oil)      → bottle 0
+      // panel 2 (Shampoo)  → bottle 1
+      // panel 3 (OR)       → dual bottles (mask + conditioner)
+      // panel 4 (Serum)    → bottle 3
+      // panel 5 (Perfume)  → bottle 4
+      const panelToBottle = [0, 0, 1, -1, 3, 4];
+
+      function switchBottle(panelIndex) {
+        const bottleIndex = panelToBottle[panelIndex];
+        const isOR = (panelIndex === 3);
+
+        if (isOR) {
+          // Show dual bottles, hide all single bottle-items
+          if (!doubleVisible) {
+            bottleItems.forEach(b => b.classList.remove('active'));
+            bottleWrapDouble.style.display = 'flex';
+            requestAnimationFrame(() => bottleWrapDouble.classList.add('active'));
+            doubleVisible = true;
+          }
+        } else {
+          // Hide dual, show single
+          if (doubleVisible) {
+            bottleWrapDouble.classList.remove('active');
+            bottleWrapDouble.style.display = 'none';
+            doubleVisible = false;
+          }
+          if (bottleIndex !== currentBottle || !bottleItems[bottleIndex].classList.contains('active')) {
+            bottleItems.forEach(b => b.classList.remove('active'));
+            bottleItems[bottleIndex].classList.add('active');
+            currentBottle = bottleIndex;
+          }
+        }
+      }
+
+      function handleScrollytelling() {
+        const rect = scrollytellingWrapper.getBoundingClientRect();
+        const wrapperHeight = scrollytellingWrapper.offsetHeight;
+        const viewportHeight = window.innerHeight;
+
+        const scrolled = -rect.top;
+        const totalScrollable = wrapperHeight - viewportHeight;
+        const progress = Math.min(Math.max(scrolled / totalScrollable, 0), 1);
+
+        // Background Zoom: 1.0 -> 1.25
+        const bgScale = 1 + progress * 0.25;
+        scrollyBg.style.transform = `scale(${bgScale})`;
+
+        // Bottle Scale Journey: 0.45 -> 0.72 -> 0.98 -> 1.30
+        let bottleScale;
+        if (progress < 0.33) {
+          const t = progress / 0.33;
+          bottleScale = 0.45 + t * (0.72 - 0.45);
+        } else if (progress < 0.66) {
+          const t = (progress - 0.33) / 0.33;
+          bottleScale = 0.72 + t * (0.98 - 0.72);
+        } else {
+          const t = (progress - 0.66) / 0.34;
+          bottleScale = 0.98 + t * (1.30 - 0.98);
+        }
+        bottleZoomContainer.style.transform = `scale(${bottleScale})`;
+
+        // 6 panels (0-5), mapped from progress
+        const activeIndex = Math.min(Math.floor(progress * 6), 5);
+
+        panels.forEach((panel, i) => {
+          panel.classList.toggle('active', i === activeIndex);
+        });
+
+        progressDots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === activeIndex);
+        });
+
+        switchBottle(activeIndex);
+      }
+      
+      window.addEventListener('scroll', handleScrollytelling);
+      handleScrollytelling();
+      
+      // Click progress dots to scroll to that step
+      progressDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+          const index = parseInt(dot.getAttribute('data-index'));
+          const wrapperTop = scrollytellingWrapper.offsetTop;
+          const wrapperHeight = scrollytellingWrapper.offsetHeight;
+          const viewportHeight = window.innerHeight;
+          const totalScrollable = wrapperHeight - viewportHeight;
+          
+          // Calculate target scroll position for 6 steps
+          // 6 steps (0-5), evenly spaced
+          const targetPercent = index === 0 ? 0.04
+            : index === 1 ? 0.22
+            : index === 2 ? 0.38
+            : index === 3 ? 0.55
+            : index === 4 ? 0.72
+            : 0.90;
+
+          const targetScrollY = wrapperTop + totalScrollable * targetPercent;
+          window.scrollTo({
+            top: targetScrollY,
+            behavior: 'smooth'
+          });
+        });
+      });
+
+      // ==========================================================================
+      // DUAL ROW TEXT MARQUEE GENERATION (SEAMLESS NO GAP)
+      // ==========================================================================
+      const row1Text = "جلو · روتين · شعر · فاخر · حرير · سيروم · ورد · ذهب · جمال · إصلاح · لمعان · نقاء · نمو · زيت · عطر · ماسك · ";
+      
+      const track1 = document.getElementById('marqueeTrack1');
+      
+      // Duplicate enough times to ensure seamless infinite looping on ultra-wide screens
+      let repeatCount = 8;
+      track1.innerHTML = `<span>${row1Text}</span>`.repeat(repeatCount);
+
+      // ==========================================================================
+      // TOUCH INTERACTION FOR FLIP CARDS ON MOBILE
+      // ==========================================================================
+      const cards = document.querySelectorAll('.card-container');
+      const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      
+      if (isTouch) {
+        cards.forEach(card => {
+          card.addEventListener('click', (e) => {
+            // Do not flip if interacting with buttons/links inside card
+            if (e.target.closest('.btn-add-cart') || e.target.closest('.discover-link')) {
+              return;
+            }
+            e.preventDefault();
+            
+            // Close other flipped cards
+            cards.forEach(c => {
+              if (c !== card) c.classList.remove('flipped');
+            });
+            
+            card.classList.toggle('flipped');
+          });
+        });
+      }
+
+      // ==========================================================================
+      // ROTATING WORD GHOST ZOOM
+      // ==========================================================================
+      const words = ['حرير', 'لمعان', 'نمو', 'قوة', 'روتين', 'إصلاح', 'فخامة', 'نقاء'];
+      let currentWordIndex = 0;
+      const rotatingWordWrapper = document.getElementById('rotatingWordWrapper');
+      
+      setInterval(() => {
+        const activeWordEl = rotatingWordWrapper.querySelector('.rotating-word.active');
+        const nextWordText = words[(currentWordIndex + 1) % words.length];
+        currentWordIndex = (currentWordIndex + 1) % words.length;
+        
+        // Create new word element
+        const nextWordEl = document.createElement('div');
+        nextWordEl.className = 'rotating-word enter';
+        nextWordEl.textContent = nextWordText;
+        rotatingWordWrapper.appendChild(nextWordEl);
+        
+        // Trigger transitions
+        if (activeWordEl) {
+          activeWordEl.classList.remove('active');
+          activeWordEl.classList.add('exit');
+          setTimeout(() => activeWordEl.remove(), 800);
+        }
+        
+        // Reflow
+        nextWordEl.offsetWidth;
+        
+        nextWordEl.classList.remove('enter');
+        nextWordEl.classList.add('active');
+      }, 1800);
+      
+      // Zoom on scroll
+      const wordSection = document.getElementById('story');
+      function handleWordZoom() {
+        const rect = wordSection.getBoundingClientRect();
+        const wrapperHeight = wordSection.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        const totalScrollable = wrapperHeight - viewportHeight;
+        const scrolled = -rect.top;
+        const progress = Math.min(Math.max(scrolled / totalScrollable, 0), 1);
+        
+        // scale .8 -> 1.3
+        const wordScale = 0.8 + progress * 0.5;
+        rotatingWordWrapper.style.transform = `scale(${wordScale})`;
+      }
+      window.addEventListener('scroll', handleWordZoom);
+      handleWordZoom();
+
+      // ==========================================================================
+      // STATS BAND COUNT-UP INTERSECTION OBSERVER
+      // ==========================================================================
+      const statsSection = document.getElementById('stats-section');
+      const statNumbers = statsSection.querySelectorAll('.stat-number');
+      let statsAnimated = false;
+
+      function animateStat(numEl) {
+        const targetStr = numEl.getAttribute('data-target');
+        const startStr  = numEl.getAttribute('data-start') || '0';
+        const suffix    = numEl.getAttribute('data-suffix') || '';
+        const target    = parseInt(targetStr);
+        const start     = parseInt(startStr);
+        const duration  = 1800;
+        let startTime   = null;
+
+        // Show start value immediately
+        numEl.textContent = start + suffix;
+
+        function step(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsed  = timestamp - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease out cubic
+          const ease     = 1 - Math.pow(1 - progress, 3);
+          const current  = Math.round(start + ease * (target - start));
+          numEl.textContent = current + suffix;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            numEl.textContent = target + suffix;
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !statsAnimated) {
+            statsAnimated = true;
+            statNumbers.forEach((numEl, i) => {
+              setTimeout(() => animateStat(numEl), i * 150);
+            });
+          }
+        });
+      }, { threshold: 0.3, rootMargin: '0px 0px -60px 0px' });
+
+      statsObserver.observe(statsSection);
+
+
+      // ==========================================================================
+      // TESTIMONIALS CARDS MARQUEE POPULATING
+      // ==========================================================================
+      const testimonials = [
+        { name: "سارة، الرياض", quote: "هذا الزيت سحر حقيقي! شعري صار صحي ولامع بدون أي ثقل." },
+        { name: "نورة، جدة", quote: "شامبو رغوته كأنها غيمة من ذهب، ريحة الورد تجنن!" },
+        { name: "ياسمين، دبي", quote: "أفضل بلسم جربته بحياتي، التقصف اختفى تماماً من أول أسبوع." },
+        { name: "لين، الكويت", quote: "السيروم خفيف جداً ويعطي لمعة زجاجية خرافية." },
+        { name: "مريم، المنامة", quote: "عطر الشعر هذا صار إدماني اليومي، الكل يسألني وش ريحة شعرك!" },
+        { name: "شهد، مسقط", quote: "الماسك الأسبوعي هو منقذ شعري التالف من الصبغات." },
+        { name: "ديما، عمان", quote: "منتجات فاخرة وتستاهل كل ريال، روتين بسيط ونتائج فورية." },
+        { name: "ريم، الدوحة", quote: "التغليف والريحة والترطيب... كل شي يجنن ويهبل!" }
+      ];
+      
+      const testTrack1 = document.getElementById('testimonialTrack1');
+      const testTrack2 = document.getElementById('testimonialTrack2');
+      
+      // Render testimonial card HTML
+      const renderCard = (item) => `
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <p class="quote">"${item.quote}"</p>
+          <div class="author">${item.name}</div>
+        </div>
+      `;
+      
+      // Duplicate 4x so the -50% snap is seamless on any screen width
+      const row1Items = testimonials.slice(0, 4);
+      const row2Items = testimonials.slice(4, 8);
+      const row1Cards = [...row1Items, ...row1Items, ...row1Items, ...row1Items];
+      const row2Cards = [...row2Items, ...row2Items, ...row2Items, ...row2Items];
+      
+      testTrack1.innerHTML = row1Cards.map(renderCard).join('');
+      testTrack2.innerHTML = row2Cards.map(renderCard).join('');
+
+      // ==========================================================================
+      // CLOSING CTA STICKY ZOOM BACKGROUND
+      // ==========================================================================
+      const ctaSection = document.getElementById('cta');
+      const ctaBg = document.getElementById('ctaBg');
+      
+      function handleCtaZoom() {
+        const rect = ctaSection.getBoundingClientRect();
+        const wrapperHeight = ctaSection.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        const totalScrollable = wrapperHeight - viewportHeight;
+        const scrolled = -rect.top;
+        const progress = Math.min(Math.max(scrolled / totalScrollable, 0), 1);
+        
+        // scale 1 -> 1.5
+        const ctaScale = 1 + progress * 0.5;
+        ctaBg.style.transform = `scale(${ctaScale})`;
+      }
+      window.addEventListener('scroll', handleCtaZoom);
+      handleCtaZoom();
+
+      // ==========================================================================
+      // GLOBAL SCROLL PROGRESS & NAVBAR STYLING ON SCROLL
+      // ==========================================================================
+      const scrollProgress = document.getElementById('scrollProgress');
+      const navbar = document.getElementById('navbar');
+      
+      window.addEventListener('scroll', () => {
+        // Progress bar
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (window.pageYOffset / totalHeight) * 100;
+        scrollProgress.style.width = `${progress}%`;
+        
+        // Navbar styling on scroll
+        if (window.scrollY > 50) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+      });
+
+      // ==========================================================================
+      // GLOBAL SCROLL REVEALS (INTERSECTION OBSERVER)
+      // ==========================================================================
+      const staggerGroups = document.querySelectorAll('.stagger-group');
+      const singleReveals = document.querySelectorAll('.reveal:not(.stagger-group .reveal)');
+      
+      const groupObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const items = entry.target.querySelectorAll('.reveal');
+            items.forEach((item, index) => {
+              setTimeout(() => {
+                item.classList.add('visible');
+              }, index * 90);
+            });
+            groupObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      staggerGroups.forEach(group => groupObserver.observe(group));
+      
+      const singleObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            singleObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      singleReveals.forEach(el => singleObserver.observe(el));
+
+    })();
+  </script>
+
+  <!-- =====================================================================
+       BASKET SYSTEM HTML
+       ===================================================================== -->
+  <div id="basket-icon" onclick="openBasket()" aria-label="عرض السلة">
+    🛒
+    <span id="basket-badge">0</span>
+  </div>
+
+  <div id="basket-overlay" onclick="closeBasket()"></div>
+  
+  <div id="basket-sidebar" role="dialog" aria-modal="true" aria-label="سلة التسوق">
+    <div class="popup-accent-bar"></div>
+    <div class="basket-header">
+      <h2 class="basket-title">سلتك 🛒</h2>
+      <button class="popup-close" onclick="closeBasket()" aria-label="إغلاق">✕</button>
+    </div>
+    
+    <div id="basket-items-list">
+      <div class="basket-empty-state">
+        <span>سلتك فارغة 🌸</span>
+      </div>
+    </div>
+    
+    <div class="basket-footer">
+      <div class="basket-total-row">
+        <span class="basket-total-label">المجموع:</span>
+        <span id="basket-total" class="basket-total-price">₪0</span>
+      </div>
+      <button id="basket-checkout-btn" class="popup-submit-btn" onclick="checkoutBasket()" disabled>
+        أكملي الطلب ←
+      </button>
+      <button class="basket-clear-btn" onclick="clearBasket()">مسح السلة</button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       POPUP 1: ORDER FORM
+       ===================================================================== -->
+  <div id="order-overlay" style="display:none" onclick="if(event.target===this)closeOrderPopup()">
+    <div id="order-modal" role="dialog" aria-modal="true" aria-label="نموذج الطلب">
+      <div class="popup-accent-bar"></div>
+      <div class="popup-header">
+        <button class="popup-close" onclick="closeOrderPopup()" aria-label="إغلاق">✕</button>
+        <div class="popup-logo-wrap">
+          <img src="logo.png" alt="Glow Beauty" class="popup-logo logo">
+        </div>
+        <h2 class="popup-title">أكملي طلبك</h2>
+      </div>
+
+      <div id="order-form-content" class="popup-body">
+        <!-- Dynamic items summary -->
+        <div id="order-items-summary"></div>
+
+        <!-- Fields -->
+        <div class="form-group">
+          <label class="form-label" for="customer-name">الاسم الكامل <span class="req">*</span></label>
+          <input id="customer-name" class="form-input" type="text" placeholder="مثال: سارة أحمد" dir="rtl" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="customer-phone">رقم الهاتف <span class="req">*</span></label>
+          <input id="customer-phone" class="form-input" type="tel" placeholder="05XXXXXXXX" dir="ltr" autocomplete="tel">
+        </div>
+        <!-- Delivery zone selector -->
+        <div class="form-group">
+          <label class="form-label">منطقة التوصيل <span class="req">*</span></label>
+          <div id="zone-options">
+            <label class="zone-card" id="zone-card-0" onclick="selectDeliveryZone(0)">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span class="zone-radio-dot" id="zone-dot-0"></span>
+                <span>الأراضي الفلسطينية المحتلة</span>
+              </span>
+              <span class="zone-price-tag">₪20</span>
+            </label>
+            <label class="zone-card" id="zone-card-1" onclick="selectDeliveryZone(1)">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span class="zone-radio-dot" id="zone-dot-1"></span>
+                <span>إسرائيل</span>
+              </span>
+              <span class="zone-price-tag">₪35</span>
+            </label>
+            <label class="zone-card" id="zone-card-2" onclick="selectDeliveryZone(2)">
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span class="zone-radio-dot" id="zone-dot-2"></span>
+                <span>الداخل (فلسطينيو 48)</span>
+              </span>
+              <span class="zone-price-tag">₪80</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- City dropdown (dynamic) -->
+        <div class="form-group">
+          <label class="form-label" for="customer-city">المدينة <span class="req">*</span></label>
+          <select id="customer-city" class="form-input" dir="rtl" disabled>
+            <option value="" disabled selected>اختاري المنطقة أولاً</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="customer-address">العنوان بالتفصيل <span class="req">*</span></label>
+          <textarea id="customer-address" class="form-input form-textarea" rows="3" placeholder="الحي / الشارع / المبنى..." dir="rtl"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="customer-notes">ملاحظات (اختياري)</label>
+          <textarea id="customer-notes" class="form-input form-textarea" rows="2" placeholder="أي تعليمات إضافية..." dir="rtl"></textarea>
+        </div>
+
+        <!-- Payment info -->
+        <div class="payment-info-box">
+          <span>💵</span>
+          <span>الدفع عند الاستلام فقط</span>
+        </div>
+
+        <button id="order-submit-btn" class="popup-submit-btn" onclick="handleOrderSubmit()">
+          إرسال الطلب ✨
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       POPUP 2: PRODUCT DETAILS
+       ===================================================================== -->
+  <div id="details-overlay" style="display:none" onclick="if(event.target===this)closeDetailsPopup()">
+    <div id="details-modal" role="dialog" aria-modal="true" aria-label="تفاصيل المنتج">
+      <div class="popup-accent-bar"></div>
+      <div class="popup-header">
+        <button class="popup-close" onclick="closeDetailsPopup()" aria-label="إغلاق">✕</button>
+        <div class="popup-logo-wrap">
+          <img src="logo.png" alt="Glow Beauty" class="popup-logo logo">
+        </div>
+      </div>
+
+      <div class="popup-body details-body">
+          <h2 id="details-product-name" class="details-prod-name"></h2>
+          <p id="details-product-tagline" class="details-prod-tagline"></p>
+          <div class="details-price-badge">
+            <span id="details-volume" class="dpb-vol"></span>
+            <span id="details-price" class="dpb-price shimmer-text"></span>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="details-tabs">
+          <button class="dtab active" data-tab="benefits" onclick="switchTab(this,'benefits')">الفوائد</button>
+          <button class="dtab" data-tab="usage" onclick="switchTab(this,'usage')">طريقة الاستخدام</button>
+        </div>
+
+        <div id="details-tab-content" class="details-tab-content"></div>
+
+        <button class="popup-submit-btn" style="margin-top:20px" onclick="closeDetailsPopup();openOrderPopup(lastDetailIndex)">
+          اطلبي الآن ✨
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       POPUP CSS
+       ===================================================================== -->
+  <style>
+    /* Overlay */
+    #order-overlay, #details-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 8999;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity .35s cubic-bezier(.23,1,.32,1);
+      pointer-events: none;
+    }
+    #order-overlay.open, #details-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Modal */
+    #order-modal, #details-modal {
+      background: #130F16;
+      border: 1px solid rgba(201,116,138,.3);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(24px);
+      transition: transform .35s cubic-bezier(.23,1,.32,1);
+      scrollbar-width: thin;
+      scrollbar-color: var(--rose-deep) transparent;
+      z-index: 9000;
+    }
+    #details-modal { max-width: 540px; }
+    #order-overlay.open #order-modal,
+    #details-overlay.open #details-modal {
+      transform: translateY(0);
+    }
+
+    .popup-accent-bar {
+      height: 2px;
+      background: linear-gradient(90deg,#8C3A52,#C9748A,#F2A8A8,#C9748A,#8C3A52);
+      background-size: 200% auto;
+      animation: shim 4s linear infinite;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .popup-header {
+      padding: 20px 24px 0;
+      text-align: center;
+      position: relative;
+    }
+    .popup-close {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(201,116,138,.2);
+      color: rgba(255,255,255,.6);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .25s;
+    }
+    .popup-close:hover {
+      background: rgba(201,116,138,.15);
+      color: #fff;
+    }
+    .popup-logo-wrap { margin-bottom: 6px; }
+    .popup-logo { width: 90px; height: auto; }
+    .popup-title {
+      font-family: 'El Messiri', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0;
+    }
+
+    .popup-body { padding: 20px 24px 28px; }
+
+    /* Product info box */
+    .order-product-box {
+      background: rgba(201,116,138,.06);
+      border: 1px solid rgba(201,116,138,.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .order-product-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .order-product-row + .order-product-row {
+      border-top: 1px solid rgba(201,116,138,.1);
+    }
+    .opb-label {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      color: rgba(255,255,255,.45);
+    }
+    .opb-value {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F2A8A8;
+    }
+
+    /* Form fields */
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      color: rgba(255,255,255,.6);
+      margin-bottom: 6px;
+    }
+    .req { color: var(--rose-mid); }
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(201,116,138,.2);
+      border-radius: 8px;
+      padding: 13px 16px;
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      direction: rtl;
+    }
+    .form-input::placeholder { color: rgba(255,255,255,.2); }
+    .form-input:focus {
+      border-color: rgba(201,116,138,.7);
+      box-shadow: 0 0 0 3px rgba(201,116,138,.1);
+    }
+    select.form-input { cursor: pointer; }
+    select.form-input option { background: #1a1320; color: #fff; }
+    .form-textarea { resize: vertical; min-height: 70px; }
+
+    /* Payment info */
+    .payment-info-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(201,116,138,.06);
+      border: 1px solid rgba(201,116,138,.18);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,.7);
+      margin-bottom: 18px;
+    }
+
+    /* Submit button */
+    .popup-submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(90deg,#8C3A52,#C9748A,#F2A8A8,#C9748A,#8C3A52);
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+      border: none;
+      border-radius: 10px;
+      color: #1a0a12;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+      letter-spacing: .02em;
+    }
+    .popup-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(201,116,138,.35);
+    }
+    .popup-submit-btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Details popup */
+    .details-body { padding: 16px 24px 28px; }
+    .details-visual {
+      text-align: center;
+      padding: 16px 0 20px;
+      border-bottom: 1px solid rgba(201,116,138,.12);
+      margin-bottom: 16px;
+    }
+    .details-bottle-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      transform: scale(0.7);
+      transform-origin: center bottom;
+      height: 180px;
+      overflow: visible;
+    }
+    .details-prod-name {
+      font-family: 'El Messiri', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .details-prod-tagline {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: rgba(201,116,138,.7);
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+    .details-price-badge {
+      display: inline-flex;
+      gap: 16px;
+      background: rgba(201,116,138,.08);
+      border: 1px solid rgba(201,116,138,.2);
+      border-radius: 20px;
+      padding: 6px 20px;
+    }
+    .dpb-vol { font-family:'Outfit',sans-serif; font-size:14px; color:rgba(255,255,255,.4); }
+    .dpb-price { font-family:'El Messiri',serif; font-size:16px; font-weight:700; }
+
+    /* Tabs */
+    .details-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid rgba(201,116,138,.15);
+      margin-bottom: 16px;
+    }
+    .dtab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 4px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,.4);
+      cursor: pointer;
+      transition: all .25s;
+      margin-bottom: -1px;
+    }
+    .dtab.active, .dtab:hover {
+      color: #F2A8A8;
+      border-bottom-color: #C9748A;
+    }
+
+    .details-tab-content {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      color: rgba(255,255,255,.75);
+      line-height: 1.8;
+      min-height: 120px;
+    }
+    .details-tab-content ul { list-style: none; padding: 0; }
+    .details-tab-content ul li { padding: 5px 0; }
+    .details-tab-content ul li::before { content: '✦ '; color: #C9748A; }
+    .details-tab-content ol { padding-right: 20px; }
+    .details-tab-content ol li { padding: 4px 0; }
+    .ingredients-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .ingr-tag {
+      background: rgba(201,116,138,.08);
+      border: 1px solid rgba(201,116,138,.2);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 13px;
+      color: #F2A8A8;
+    }
+
+    /* Mobile */
+    @media (max-width: 540px) {
+      #order-modal, #details-modal {
+        max-height: 98vh;
+        border-radius: 12px 12px 0 0;
+        margin-top: auto;
+      }
+      #order-overlay, #details-overlay { align-items: flex-end; padding: 0; }
+    }
+
+    /* =====================================================================
+       BASKET SYSTEM CSS
+       ===================================================================== */
+    #basket-icon {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      width: 48px;
+      height: 48px;
+      background: rgba(201, 116, 138, 0.15);
+      border: 1px solid rgba(201, 116, 138, 0.35);
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 8000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      transition: background-color 0.25s, transform 0.25s;
+    }
+    #basket-icon:hover {
+      background: rgba(201, 116, 138, 0.25);
+      transform: scale(1.05);
+    }
+    
+    #basket-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #8C3A52, #F2A8A8);
+      font-size: 11px;
+      color: white;
+      font-weight: 700;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #basket-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 8400;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    #basket-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #basket-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 380px;
+      max-width: 100%;
+      height: 100vh;
+      background: #130F16;
+      border-left: 1px solid rgba(201, 116, 138, 0.2);
+      z-index: 8500;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    #basket-sidebar.open {
+      transform: translateX(0);
+    }
+
+    .basket-header {
+      padding: 24px 20px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(201, 116, 138, 0.1);
+      position: relative;
+    }
+    .basket-header .popup-close {
+      position: static;
+      margin-left: 0;
+    }
+    .basket-title {
+      font-family: 'El Messiri', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    #basket-items-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 20px;
+    }
+    .basket-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .basket-item-info {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .basket-item-name {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .basket-item-vol {
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .basket-item-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .basket-item-price {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #F2A8A8;
+    }
+    .basket-item-remove {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      font-size: 16px;
+      transition: color 0.25s;
+      padding: 4px;
+    }
+    .basket-item-remove:hover {
+      color: #ff6b6b;
+    }
+
+    .basket-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 16px;
+      gap: 8px;
+    }
+
+    .basket-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(201, 116, 138, 0.15);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .basket-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .basket-total-label {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .basket-total-price {
+      font-family: 'El Messiri', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #F2A8A8;
+    }
+    .basket-clear-btn {
+      display: block;
+      margin: 12px auto 0;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.25s;
+    }
+    .basket-clear-btn:hover {
+      color: #ff6b6b;
+    }
+
+    .toast-notification {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translate(-50%, -20px);
+      background: rgba(201, 116, 138, 0.95);
+      border: 1px solid rgba(201, 116, 138, 0.4);
+      border-radius: 24px;
+      padding: 10px 24px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      z-index: 9000;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s;
+      pointer-events: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+    .toast-notification.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+    .card-prod-price {
+      transition: opacity 0.15s ease-in-out;
+    }
+    .size-selector {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .size-btn {
+      padding: 8px 14px;
+      border: 1px solid rgba(201,116,138,.3);
+      border-radius: 20px;
+      background: transparent;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 12px;
+      color: rgba(255,255,255,.5);
+      cursor: pointer;
+      margin: 4px;
+      transition: all .3s;
+      outline: none;
+    }
+    .size-btn:hover {
+      border-color: rgba(201,116,138,.6);
+      color: #fff;
+    }
+    .size-btn.active {
+      background: linear-gradient(90deg,#8C3A52,#C9748A);
+      border-color: transparent;
+      font-weight: 700;
+      color: white;
+    }
+    .ingredients-box {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 12px;
+      color: rgba(255,255,255,.5);
+      line-height: 1.8;
+      direction: ltr;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 12px;
+      background: rgba(255,255,255,.03);
+      border-radius: 8px;
+      border: 1px solid rgba(201,116,138,.1);
+    }
+    .ingredients-empty {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,.35);
+      text-align: center;
+      font-style: italic;
+      direction: rtl;
+    }
+    .bundle-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      direction: rtl;
+    }
+    .bundle-left {
+      text-align: right;
+    }
+    .bundle-btn {
+      width: 220px;
+      padding: 15px 24px;
+      background: linear-gradient(90deg, #8C3A52, #C9748A, #F2A8A8);
+      background-size: 200% auto;
+      animation: shim 5s linear infinite;
+      color: #000;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .bundle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(201, 116, 138, 0.4);
+    }
+    
+    @media (max-width: 768px) {
+      .bundle-card {
+        padding: 32px 20px !important;
+      }
+      .bundle-layout {
+        flex-direction: column;
+        gap: 32px;
+      }
+      .bundle-left, .bundle-right {
+        text-align: center !important;
+        width: 100%;
+      }
+      .bundle-item-line {
+        justify-content: center;
+      }
+      .bundle-btn {
+        width: 100% !important;
+      }
+    }
+
+    /* Delivery zone radio cards */
+    .zone-card {
+      padding: 14px 18px;
+      border: 1px solid rgba(201,116,138,.2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: rgba(255,255,255,.6);
+      transition: all .3s;
+      direction: rtl;
+    }
+    .zone-card:hover {
+      border-color: rgba(201,116,138,.45);
+      color: rgba(255,255,255,.8);
+    }
+    .zone-card.selected {
+      border-color: rgba(201,116,138,.7);
+      background: rgba(201,116,138,.08);
+      color: #F2A8A8;
+    }
+    .zone-card input[type="radio"] {
+      display: none;
+    }
+    .zone-radio-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(201,116,138,.4);
+      flex-shrink: 0;
+      margin-left: 10px;
+      transition: all .3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .zone-card.selected .zone-radio-dot {
+      border-color: #C9748A;
+      background: #C9748A;
+    }
+    .zone-card.selected .zone-radio-dot::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+      display: block;
+    }
+    .zone-price-tag {
+      font-weight: 700;
+      color: #C9748A;
+      font-size: 14px;
+      direction: ltr;
+    }
+  </style>
+
+  <!-- =====================================================================
+       POPUP JAVASCRIPT
+       ===================================================================== -->
+  <script>
+    // ── Supabase ──────────────────────────────────────────────────────────
+    const SUPABASE_URL = 'https://xjekzyyznpuvtscxtalu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_91l-JaTSFb6eyfbUUAgIoQ_rycNPnPQ';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+    // ── Product data ──────────────────────────────────────────────────────
+    const PRODUCT_DB = [
+      {
+        name: 'زيت إنبات الشعر', volume: '50 ml', price: '₪40',
+        bottleClass: 'bottle-oil', hasDropper: true, hasNeck: true, hasPump: false,
+        tagline: 'من الجذر للأطراف',
+        benefits: ['يحفز نمو الشعر من الجذور','يقوي الشعر ويقلل التساقط','يغذي فروة الرأس بعمق','يمنح لمعاناً طبيعياً','مناسب لجميع أنواع الشعر'],
+        usage: ['ضعي كمية صغيرة على أطراف أصابعك','دلكي فروة الرأس بحركات دائرية','اتركيه من ساعة إلى أربع ساعات','اغسلي الشعر بالشامبو كالمعتاد'],
+        ingredients: 'المكونات قريباً'
+      },
+      {
+        name: 'شامبو الشعر', volume: '500 ml', price: '₪50',
+        bottleClass: 'bottle-shampoo', hasDropper: false, hasNeck: false, hasPump: false,
+        tagline: 'رغوة من ذهب',
+        benefits: ['خالٍ من الكبريتات والبارابين','ينظف عميقاً دون تجفيف','يزيل الشوائب والأوساخ','يمنح الشعر نعومة فورية','رغوة كثيفة وعطر راقٍ'],
+        usage: ['بللي الشعر جيداً بالماء الدافئ','ضعي كمية مناسبة على راحة يدك','دلكي الشعر وفروة الرأس بلطف','اشطفي جيداً بالماء الفاتر'],
+        ingredients: 'Aqua (Water), Sodium C14-16 Olefin Sulfonate, Cocamidopropyl Betaine, Cocamide DEA, Cocamidopropylamine Oxide, Glycerin, Polyquaternium-10, Polyquaternium-7, Rosmarinus Officinalis (Rosemary) Leaf Extract, Syzygium Aromaticum (Clove) Flower Extract, Argania Spinosa Kernel Oil, Dimethicone (350 cSt), Cosmedia Guar, Argan oil, Biotin, Hydrolyzed Keratin, Citric Acid, Phenoxyethanol, Ethylhexylglycerin, Parfum (Fragrance)'
+      },
+      {
+        name: 'بلسم الشعر', volume: '500 ml', price: '₪30',
+        bottleClass: 'bottle-conditioner', hasDropper: false, hasNeck: false, hasPump: false,
+        tagline: 'حرير، مش تنازل',
+        benefits: ['يرطب الشعر بعمق','يقلل التقصف والهيشان','يسهل تمشيط الشعر','يمنح نعومة تدوم طوال اليوم','يعيد الحيوية للشعر التالف'],
+        usage: ['بعد الشامبو اعصري الماء الزائد','ضعي البلسم من منتصف الشعر للأطراف','اتركيه من 3-5 دقائق','اشطفي بالماء البارد لإغلاق القشرة'],
+        ingredients: 'Aqua (Water), Cetearyl Alcohol, Behentrimonium Methosulfate (and) Cetearyl Alcohol, Cetrimonium Chloride, Glycerin, Betaine, Polyquaternium-7, Polyquaternium-10, Xanthan Gum, Argania Spinosa Kernel Oil, Cocos Nucifera (Coconut) Oil, Rosmarinus Officinalis (Rosemary) Leaf Extract, Aloe Barbadensis Leaf Extract, Urtica Dioica (Nettle) Extract, Dimethicone, Cyclopentasiloxane, Cosmedia Cream, Phenoxyethanol, Ethylhexylglycerin, Citric Acid, Parfum (Fragrance)'
+      },
+      {
+        name: 'سيروم الشعر', volume: '120 ml', price: '₪30',
+        bottleClass: 'bottle-serum', hasDropper: false, hasNeck: false, hasPump: true,
+        tagline: 'شعر زجاجي كل يوم',
+        benefits: ['يمنح لمعاناً زجاجياً فورياً','يحمي من الحرارة حتى 230 درجة','يقلل الهيشان 100%','يغذي الشعر بدون ثقل','يدوم طوال اليوم'],
+        usage: ['ضعي نقطتين على راحة يدك','افركي يديك معاً لتوزيع المنتج','طبقي على الشعر الرطب أو الجاف','لا تشطفي — يُترك على الشعر'],
+        ingredients: 'POLYDIMETHYLSILOXANE -XIAMETER PMX200-, ISOPROPYL PALMITATE, DIMETHICONE PROPYL PARABEN, TRITICUM VULGARE (WHEAT GERM) OIL REFINED, SIMMONDSIA CHINESIS DULCIS (JOJOBA) SEED OIL, PRUNUS AMYGDALUS (SWEET ALMOND) OIL, RICINUS COMMUNIST SEED DL COLOR-(E140-), FRAGRANCE-COOL WATER'
+      },
+      {
+        name: 'عطر الشعر', volume: '120 ml', price: '₪30',
+        bottleClass: 'bottle-perfume', hasDropper: false, hasNeck: true, hasPump: false,
+        tagline: 'رائحة تفضل',
+        benefits: ['رائحة فاخرة تدوم 24 ساعة','يضيف لمعاناً خفيفاً للشعر','يرطب ويغذي أثناء العطر','خفيف ولا يثقل الشعر','مناسب للاستخدام اليومي'],
+        usage: ['رشي على الشعر النظيف من مسافة 20سم','وزعي بأصابعك بلطف','يمكن استخدامه على الشعر الجاف','أعيدي التطبيق عند الحاجة'],
+        ingredients: 'المكونات قريباً'
+      },
+      {
+        name: 'ماسك الشعر', volume: '500 ml', price: '₪50',
+        bottleClass: 'bottle-mask', hasDropper: false, hasNeck: false, hasPump: false,
+        tagline: 'الروتين الأسبوعي',
+        benefits: ['ترطيب عميق يدوم أسبوعاً','يجدد الشعر التالف من الداخل','يقوي الخصلات ويقلل الكسر','يمنح نعومة لا مثيل لها','نتائج مرئية من الاستخدام الأول'],
+        usage: ['بعد الشامبو وزعي الماسك على الشعر','ركزي على الأطراف التالفة','اتركيه 10-15 دقيقة','اشطفي جيداً بالماء الفاتر — استخدمي مرة أسبوعياً'],
+        ingredients: 'Aqua (Water), Cetearyl Alcohol, Behentrimonium Methosulfate (and) Cetearyl Alcohol, Cetrimonium Chloride, Shea Butter, Betaine, Polyquaternium-7, Polyquaternium-10, Xanthan Gum, Argania Spinosa Kernel Oil, Cocos Nucifera (Coconut) Oil, Rosmarinus Officinalis (Rosemary) Leaf Extract, Aloe Barbadensis Leaf Extract, Urtica Dioica (Nettle) Extract, Dimethicone, Cyclopentasiloxane, Cosmedia Guar, Hydrolyzed Keratin, Phenoxyethanol, Ethylhexylglycerin, Citric Acid, Parfum (Fragrance)'
+      }
+    ];
+
+    // ── Selected Sizes State ──────────────────────────────────────────────
+    const selectedSizes = {
+      0: { volume: '50ml', price: 40 },
+      5: { volume: '500ml', price: 50 }
+    };
+
+
+    function selectSize(event, productId, volume, price, btnEl) {
+      if (event) event.stopPropagation();
+      selectedSizes[productId] = { volume, price };
+
+      // Sync selectors
+      const selectors = document.querySelectorAll(`.size-selector[data-product-id="${productId}"]`);
+      selectors.forEach(sel => {
+        const buttons = sel.querySelectorAll('.size-btn');
+        buttons.forEach(btn => {
+          btn.classList.toggle('active', btn.textContent.includes(volume));
+        });
+      });
+
+      // Update card front price displayed
+      const card = document.querySelector(`.card-container[data-index="${productId}"]`);
+      if (card) {
+        const priceEl = card.querySelector('.card-prod-price');
+        if (priceEl) {
+          priceEl.style.opacity = '0';
+          setTimeout(() => {
+            priceEl.textContent = `₪${price}`;
+            priceEl.style.opacity = '1';
+          }, 150);
+        }
+      }
+    }
+
+    // ── Basket System ─────────────────────────────────────────────────────
+    let basket = [];
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'toast-notification';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          toast.classList.add('show');
+        });
+      });
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+          toast.remove();
+        });
+      }, 2000);
+    }
+
+    // ── Delivery zone state ───────────────────────────────────────────────
+    const DELIVERY_ZONES = [
+      { name: 'الأراضي الفلسطينية المحتلة', fee: 20, cities: ['رام الله','البيرة','نابلس','جنين','الخليل','بيت لحم','طولكرم','قلقيلية','أريحا','طوباس','سلفيت','أبو ديس','بيتونيا','بلعين'] },
+      { name: 'إسرائيل', fee: 35, cities: ['تل أبيب','حيفا','القدس','بئر السبع','إيلات','نتانيا','أشدود','ريشون لتسيون','פتח תקווה','هرتسليا','رعنانا','כפר סבא'] },
+      { name: 'الداخل (فلسطينيو 48)', fee: 80, cities: ['الناصرة','أم الفحم','باقة الغربية','كفر قاسم','طمرة','سخنين','عرابة','شفاعمرو','المغار','يافا','اللد','الرملة','حيفا العربية','عكا'] }
+    ];
+    let selectedZoneIdx = null;
+
+    function selectDeliveryZone(idx) {
+      selectedZoneIdx = idx;
+      [0,1,2].forEach(i => {
+        document.getElementById(`zone-card-${i}`).classList.toggle('selected', i === idx);
+      });
+      // Populate city dropdown
+      const citySelect = document.getElementById('customer-city');
+      const zone = DELIVERY_ZONES[idx];
+      citySelect.innerHTML = `<option value="" disabled selected>اختاري المدينة</option>` +
+        zone.cities.map(c => `<option value="${c}">${c}</option>`).join('');
+      citySelect.disabled = false;
+      citySelect.style.borderColor = '';
+      // Refresh summary
+      refreshOrderSummaryPrices();
+    }
+
+    function getDeliveryFee() {
+      return selectedZoneIdx !== null ? DELIVERY_ZONES[selectedZoneIdx].fee : 0;
+    }
+    function getDeliveryZoneName() {
+      return selectedZoneIdx !== null ? DELIVERY_ZONES[selectedZoneIdx].name : '';
+    }
+
+    function refreshOrderSummaryPrices() {
+      // Re-render whichever summary type is showing
+      const summary = document.getElementById('order-items-summary');
+      if (!summary) return;
+      if (summary.dataset.summaryType === 'basket') {
+        renderBasketOrderSummary();
+      } else if (summary.dataset.summaryType === 'single') {
+        const p = currentProduct;
+        if (p) renderOrderItemsSummary(p.name, p.volume, p.price);
+      }
+    }
+
+    function renderOrderItemsSummary(productName, volume, price) {
+      const summary = document.getElementById('order-items-summary');
+      summary.dataset.summaryType = 'single';
+      const fee = getDeliveryFee();
+      const productTotal = parseInt(price.toString().replace(/[^\d]/g,'')) || 0;
+      const grandTotal = productTotal + fee;
+      const deliveryRow = fee > 0
+        ? `<div class="order-product-row" style="border-top:1px solid rgba(201,116,138,.1);margin-top:4px;padding-top:8px;">
+            <span class="opb-label">رسوم التوصيل</span>
+            <span class="opb-value">₪${fee}</span>
+           </div>
+           <div class="order-product-row" style="border-top:1px solid rgba(201,116,138,.2);margin-top:4px;padding-top:8px;">
+            <span class="opb-label" style="color:#F2A8A8;font-weight:700;">المجموع الكلي</span>
+            <span class="opb-value shimmer-text" style="font-size:18px;">₪${grandTotal}</span>
+           </div>`
+        : '';
+      summary.innerHTML = `
+        <div class="order-product-box">
+          <div class="order-product-row">
+            <span class="opb-label">المنتج</span>
+            <span class="opb-value">${productName}</span>
+          </div>
+          <div class="order-product-row">
+            <span class="opb-label">الحجم</span>
+            <span class="opb-value">${volume}</span>
+          </div>
+          <div class="order-product-row">
+            <span class="opb-label">السعر</span>
+            <span class="opb-value shimmer-text">${price}</span>
+          </div>
+          ${deliveryRow}
+        </div>
+      `;
+    }
+
+    function renderBasketOrderSummary() {
+      const summary = document.getElementById('order-items-summary');
+      summary.dataset.summaryType = 'basket';
+      const itemsHtml = basket.map(item => `
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:rgba(255,255,255,.6); padding:4px 0; direction:rtl;">
+          <span>• ${item.name} ${item.volume}</span>
+          <span>₪${item.price}</span>
+        </div>
+      `).join('');
+      const productsTotal = getTotal();
+      const fee = getDeliveryFee();
+      const grandTotal = productsTotal + fee;
+      const deliveryRow = fee > 0
+        ? `<div style="display:flex;justify-content:space-between;align-items:center;direction:ltr;font-size:13px;color:rgba(255,255,255,.5);margin-top:4px;">
+            <span>₪${fee}</span><span style="direction:rtl;">رسوم التوصيل:</span>
+           </div>
+           <div style="border-top:1px solid rgba(201,116,138,.3);margin-top:8px;padding-top:8px;font-size:16px;font-weight:700;color:#F2A8A8;display:flex;justify-content:space-between;align-items:center;direction:ltr;">
+            <span>₪${grandTotal}</span><span style="direction:rtl;">المجموع الكلي:</span>
+           </div>`
+        : `<div style="border-top:1px solid rgba(201,116,138,.2);margin-top:8px;padding-top:8px;font-size:16px;font-weight:700;color:#F2A8A8;display:flex;justify-content:space-between;align-items:center;direction:ltr;">
+            <span>₪${productsTotal}</span><span style="direction:rtl;">المجموع الكلي:</span>
+           </div>`;
+      summary.innerHTML = `
+        <div style="background:rgba(201,116,138,.06); border:1px solid rgba(201,116,138,.2); border-radius:10px; padding:16px; margin-bottom:20px; font-family:Tajawal;">
+          <div style="font-size:14px; font-weight:700; color:#F2A8A8; margin-bottom:10px; border-bottom:1px solid rgba(201,116,138,.2); padding-bottom:8px; direction:rtl;">🛒 منتجاتك</div>
+          ${itemsHtml}
+          <div style="direction:ltr;font-size:13px;color:rgba(255,255,255,.5);margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+            <span>₪${productsTotal}</span><span style="direction:rtl;">مجموع المنتجات:</span>
+          </div>
+          ${deliveryRow}
+        </div>
+      `;
+    }
+
+    function addBundleToBasket() {
+      const item = {
+        id: 'bundle-complete',
+        name: 'بكج العناية الكاملة',
+        volume: 'شامبو + بلسم + ماسك + سيروم',
+        price: 120,
+        quantity: 1
+      };
+      basket.push(item);
+      updateBasketUI();
+      showToast('✅ تمت الإضافة للسلة');
+    }
+
+    function addToBasketByIdx(index) {
+      const p = PRODUCT_DB[index];
+      let name = p.name;
+      let volume = p.volume;
+      let price = parseInt(p.price.replace(/[^\d]/g, ''));
+
+      if (index === 0 || index === 5) {
+        const sel = selectedSizes[index];
+        volume = sel.volume;
+        price = sel.price;
+      }
+
+      const item = {
+        id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        name: name,
+        volume: volume,
+        price: price,
+        quantity: 1
+      };
+      basket.push(item);
+      updateBasketUI();
+      showToast('✅ تمت الإضافة للسلة');
+    }
+
+    function removeFromBasket(id) {
+      basket = basket.filter(i => i.id !== id);
+      updateBasketUI();
+    }
+
+    function getTotal() {
+      return basket.reduce((sum, i) => sum + i.price, 0);
+    }
+
+    function getCount() {
+      return basket.length;
+    }
+
+    function clearBasket() {
+      basket = [];
+      updateBasketUI();
+    }
+
+    function updateBasketUI() {
+      const badge = document.getElementById('basket-badge');
+      const count = getCount();
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      const listEl = document.getElementById('basket-items-list');
+      if (basket.length === 0) {
+        listEl.innerHTML = `
+          <div class="basket-empty-state">
+            <span>سلتك فارغة 🌸</span>
+          </div>
+        `;
+        document.getElementById('basket-total').textContent = '₪0';
+        document.getElementById('basket-checkout-btn').disabled = true;
+      } else {
+        listEl.innerHTML = basket.map(item => `
+          <div class="basket-item">
+            <div class="basket-item-info">
+              <span class="basket-item-name">${item.name}</span>
+              <span class="basket-item-vol">${item.volume}</span>
+            </div>
+            <div class="basket-item-left">
+              <span class="basket-item-price">₪${item.price}</span>
+              <button class="basket-item-remove" onclick="removeFromBasket('${item.id}')" aria-label="حذف">✕</button>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('basket-total').textContent = '₪' + getTotal();
+        document.getElementById('basket-checkout-btn').disabled = false;
+      }
+    }
+
+    function openBasket() {
+      document.getElementById('basket-overlay').classList.add('open');
+      document.getElementById('basket-sidebar').classList.add('open');
+      lockScroll();
+    }
+
+    function closeBasket() {
+      document.getElementById('basket-overlay').classList.remove('open');
+      document.getElementById('basket-sidebar').classList.remove('open');
+      unlockScroll();
+    }
+
+    function checkoutBasket() {
+      closeBasket();
+      openOrderPopup(null);
+    }
+
+    // ── State ─────────────────────────────────────────────────────────────
+    let currentProduct = null;
+    let lastDetailIndex = 0;
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function lockScroll()   { document.body.style.overflow = 'hidden'; }
+    function unlockScroll() { document.body.style.overflow = ''; }
+
+    function generateOrderNumber() {
+      const year = new Date().getFullYear();
+      const rand = Math.floor(100 + Math.random() * 900);
+      const time = Date.now().toString().slice(-3);
+      return `GB-${year}-${rand}${time}`;
+    }
+
+    function buildBottleHTML(p) {
+      let inner = '';
+      if (p.hasDropper) inner += '<div class="dropper-bulb"></div>';
+      if (p.hasPump)    inner += '<div class="pump-head"><div class="pump-nozzle"></div><div class="cap"></div></div>';
+      else              inner += '<div class="cap"></div>';
+      if (p.hasNeck)    inner += '<div class="neck"></div>';
+      inner += `<div class="body">
+        <div class="bottle-label">
+          <span class="bottle-brand">GLOW</span>
+          <div class="bottle-line"></div>
+          <span class="bottle-name">${p.name}</span>
+          <span class="bottle-volume">${p.volume}</span>
+        </div>
+        <div class="reflection"></div>
+      </div>
+      <div class="halo"></div>`;
+      return `<div class="css-bottle ${p.bottleClass}">${inner}</div>`;
+    }
+
+    // ── Open / Close ──────────────────────────────────────────────────────
+    function renderOrderItemsSummary(productName, volume, price) {
+      const summary = document.getElementById('order-items-summary');
+      summary.innerHTML = `
+        <div class="order-product-box">
+          <div class="order-product-row">
+            <span class="opb-label">المنتج</span>
+            <span class="opb-value">${productName}</span>
+          </div>
+          <div class="order-product-row">
+            <span class="opb-label">الحجم</span>
+            <span class="opb-value">${volume}</span>
+          </div>
+          <div class="order-product-row">
+            <span class="opb-label">السعر</span>
+            <span class="opb-value shimmer-text">${price}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBasketOrderSummary() {
+      const summary = document.getElementById('order-items-summary');
+      const itemsHtml = basket.map(item => `
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:rgba(255,255,255,.6); padding:4px 0; direction:rtl;">
+          <span>• ${item.name} ${item.volume}</span>
+          <span>₪${item.price}</span>
+        </div>
+      `).join('');
+      
+      summary.innerHTML = `
+        <div style="background:rgba(201,116,138,.06); border:1px solid rgba(201,116,138,.2); border-radius:10px; padding:16px; margin-bottom:20px; font-family:Tajawal;">
+          <div style="font-size:14px; font-weight:700; color:#F2A8A8; margin-bottom:10px; border-bottom:1px solid rgba(201,116,138,.2); padding-bottom:8px; direction:rtl;">🛒 منتجاتك</div>
+          ${itemsHtml}
+          <div style="border-top:1px solid rgba(201,116,138,.2); margin-top:8px; padding-top:8px; font-size:16px; font-weight:700; color:#F2A8A8; display:flex; justify-content:space-between; align-items:center; direction:ltr;">
+            <span>₪${getTotal()}</span>
+            <span>المجموع الكلي:</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function openOrderPopup(index) {
+      selectedZoneIdx = null;
+      [0,1,2].forEach(i => {
+        const card = document.getElementById(`zone-card-${i}`);
+        if (card) card.classList.remove('selected');
+      });
+      const citySelect = document.getElementById('customer-city');
+      if (citySelect) {
+        citySelect.innerHTML = '<option value="" disabled selected>اختاري المنطقة أولاً</option>';
+        citySelect.disabled = true;
+      }
+
+      if (index !== undefined && index !== null) {
+        const p = PRODUCT_DB[index];
+        let volume = p.volume;
+        let price = p.price;
+        if (index === 0 || index === 5) {
+          const sel = selectedSizes[index];
+          volume = sel.volume;
+          price = `₪${sel.price}`;
+        }
+        currentProduct = { name: p.name, volume: volume, price: price };
+        renderOrderItemsSummary(p.name, volume, price);
+      } else {
+        const names = basket.map(i => `${i.name} (${i.volume})`).join(', ');
+        const total = getTotal();
+        currentProduct = { name: names, volume: '', price: `₪${total}` };
+        renderBasketOrderSummary();
+      }
+
+      // Reset form
+      ['customer-name','customer-phone','customer-address','customer-notes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.value = ''; el.style.borderColor = ''; }
+      });
+      const city = document.getElementById('customer-city');
+      if (city) city.selectedIndex = 0;
+      const errEl = document.getElementById('form-error');
+      if (errEl) errEl.remove();
+      const btn = document.getElementById('order-submit-btn');
+      if (btn) { btn.textContent = 'إرسال الطلب ✨'; btn.disabled = false; btn.style.background = ''; }
+
+      const overlay = document.getElementById('order-overlay');
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => { requestAnimationFrame(() => overlay.classList.add('open')); });
+      lockScroll();
+    }
+
+    function closeOrderPopup() {
+      const overlay = document.getElementById('order-overlay');
+      overlay.classList.remove('open');
+      overlay.addEventListener('transitionend', () => { overlay.style.display = 'none'; }, { once: true });
+      unlockScroll();
+    }
+
+    function openDetailsPopup(index) {
+      lastDetailIndex = index;
+      const p = PRODUCT_DB[index];
+
+      document.getElementById('details-product-name').textContent    = p.name;
+      document.getElementById('details-product-tagline').textContent = `"${p.tagline}"`;
+      document.getElementById('details-volume').textContent          = p.volume;
+      document.getElementById('details-price').textContent           = p.price;
+
+
+      // Activate benefits tab by default
+      document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.dtab[data-tab="benefits"]').classList.add('active');
+      renderTab('benefits', p);
+
+      const overlay = document.getElementById('details-overlay');
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => { requestAnimationFrame(() => overlay.classList.add('open')); });
+      lockScroll();
+    }
+
+    function closeDetailsPopup() {
+      const overlay = document.getElementById('details-overlay');
+      overlay.classList.remove('open');
+      overlay.addEventListener('transitionend', () => { overlay.style.display = 'none'; }, { once: true });
+      unlockScroll();
+    }
+
+    function switchTab(btn, tabName) {
+      document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderTab(tabName, PRODUCT_DB[lastDetailIndex]);
+    }
+
+    function renderTab(tab, p) {
+      const cont = document.getElementById('details-tab-content');
+      if (tab === 'benefits') {
+        cont.innerHTML = `<ul>${p.benefits.map(b => `<li>${b}</li>`).join('')}</ul>`;
+      } else if (tab === 'usage') {
+        cont.innerHTML = `<ol>${p.usage.map(u => `<li>${u}</li>`).join('')}</ol>`;
+      } else {
+        if (p.ingredients === 'المكونات قريباً') {
+          cont.innerHTML = `<div class="ingredients-empty">${p.ingredients}</div>`;
+        } else {
+          cont.innerHTML = `<div class="ingredients-box">${p.ingredients}</div>`;
+        }
+      }
+    }
+
+    // ── ESC key ───────────────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('order-overlay').classList.contains('open'))   closeOrderPopup();
+        if (document.getElementById('details-overlay').classList.contains('open')) closeDetailsPopup();
+        if (document.getElementById('basket-sidebar').classList.contains('open'))  closeBasket();
+      }
+    });
+
+    // ── Form validation ───────────────────────────────────────────────────
+    function showFormError(msg) {
+      let err = document.getElementById('form-error');
+      if (!err) {
+        err = document.createElement('div');
+        err.id = 'form-error';
+        err.style.cssText = 'color:#ff6b6b;font-family:Tajawal,sans-serif;font-size:13px;text-align:center;margin-bottom:12px;padding:8px 12px;background:rgba(255,80,80,.08);border-radius:6px;';
+        document.getElementById('order-submit-btn').insertAdjacentElement('beforebegin', err);
+      }
+      err.textContent = msg;
+    }
+
+    function validateForm() {
+      // Check zone
+      if (selectedZoneIdx === null) {
+        showFormError('من فضلك اختاري منطقة التوصيل');
+        document.getElementById('zone-options').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      const fields = [
+        { id: 'customer-name',    label: 'الاسم الكامل' },
+        { id: 'customer-phone',   label: 'رقم الهاتف' },
+        { id: 'customer-city',    label: 'المدينة' },
+        { id: 'customer-address', label: 'العنوان' }
+      ];
+      for (const f of fields) {
+        const el = document.getElementById(f.id);
+        if (!el || !el.value.trim()) {
+          if (el) { el.style.borderColor = 'rgba(255,80,80,.7)'; el.focus(); }
+          showFormError(`من فضلك أدخلي ${f.label}`);
+          return false;
+        }
+        if (f.id === 'customer-phone' && !/^[0-9+]{9,15}$/.test(el.value.trim())) {
+          el.style.borderColor = 'rgba(255,80,80,.7)';
+          el.focus();
+          showFormError('من فضلك أدخلي رقم هاتف صحيح');
+          return false;
+        }
+        el.style.borderColor = '';
+      }
+      return true;
+    }
+
+
+    // ── Success screen ────────────────────────────────────────────────────
+    function showSuccess(orderNumber, totalWithDelivery) {
+      document.getElementById('order-form-content').innerHTML = `
+        <div style="text-align:center;padding:40px 24px">
+          <div style="width:64px;height:64px;border-radius:50%;
+                      background:linear-gradient(135deg,#8C3A52,#C9748A);
+                      display:flex;align-items:center;justify-content:center;
+                      margin:0 auto 20px;font-size:28px">✓</div>
+          <h2 style="font-family:'El Messiri',serif;font-size:24px;font-weight:700;
+                     margin-bottom:8px;
+                     background:linear-gradient(90deg,#C9748A,#F2A8A8);
+                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                     background-clip:text">
+            تم استلام طلبك بنجاح
+          </h2>
+          <p style="color:rgba(255,255,255,.45);font-family:'Tajawal',sans-serif;
+                    font-size:14px;margin-bottom:20px">
+            رقم طلبك
+          </p>
+          <div style="background:rgba(201,116,138,.08);
+                      border:1.5px solid rgba(201,116,138,.45);
+                      border-radius:14px;padding:18px 28px;margin-bottom:12px;
+                      font-size:26px;font-weight:800;letter-spacing:.15em;
+                      color:#F2A8A8;font-family:'Tajawal',sans-serif;
+                      direction:ltr;text-align:center">
+            ${orderNumber}
+          </div>
+          ${totalWithDelivery ? `<div style="font-family:'Tajawal',sans-serif;font-size:15px;
+                      color:rgba(255,255,255,.6);margin-bottom:20px">
+            المجموع الكلي شامل التوصيل:
+            <span style="color:#F2A8A8;font-weight:700;"> ₪${totalWithDelivery}</span>
+          </div>` : ''}
+          <p style="color:rgba(255,255,255,.3);font-family:'Tajawal',sans-serif;
+                    font-size:12px;margin-bottom:28px;line-height:1.7">
+            احتفظي بهذا الرقم عند التواصل معنا
+          </p>
+          <button onclick="closeOrderPopup()"
+            style="width:100%;padding:14px 0;
+                   background:linear-gradient(90deg,#8C3A52,#C9748A,#F2A8A8);
+                   border:none;border-radius:12px;color:#1a0a12;
+                   font-family:'Tajawal',sans-serif;font-size:16px;
+                   font-weight:800;cursor:pointer;letter-spacing:.03em">
+            إغلاق
+          </button>
+        </div>`;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────────
+    async function submitOrder(orderData) {
+      const btn = document.getElementById('order-submit-btn');
+      btn.textContent = 'جاري الإرسال...';
+      btn.disabled = true;
+
+      try {
+        const orderNumber = generateOrderNumber();
+
+        // Build items array
+        const items = orderData.items && orderData.items.length
+          ? orderData.items
+          : [{ name: orderData.product, volume: orderData.volume, price: orderData.price }];
+
+        // For basket/bundle: volume summary
+        const volumeVal = orderData.volume || (items.length > 1 ? `${items.length} منتجات` : 'طقم');
+
+        const { error } = await db.from('orders').insert([{
+          order_number:          orderNumber,
+          product_name:          orderData.product,
+          product_volume:        volumeVal,
+          price:                 orderData.price,
+          customer_name:         orderData.name,
+          phone:                 orderData.phone,
+          city:                  orderData.city,
+          address:               orderData.address,
+          notes:                 orderData.notes || '',
+          payment:               'cash',
+          status:                'pending',
+          delivery_zone:         orderData.delivery_zone,
+          delivery_fee:          orderData.delivery_fee,
+          total_with_delivery:   orderData.total_with_delivery,
+          items:                 items
+        }]);
+
+        if (error) throw error;
+
+        showSuccess(orderNumber, orderData.total_with_delivery);
+        clearBasket();
+
+      } catch (err) {
+        console.error('Order error:', err);
+        btn.textContent = 'حدث خطأ، حاولي مرة ثانية';
+        btn.disabled = false;
+        btn.style.background = 'rgba(255,50,50,.25)';
+        btn.style.animation = 'none';
+        showFormError('حدث خطأ أثناء إرسال الطلب. من فضلك حاولي مجدداً.');
+      }
+    }
+
+    async function handleOrderSubmit() {
+      if (!validateForm()) return;
+      const productPriceNum = parseInt((currentProduct.price || '').toString().replace(/[^\d]/g,'')) || 0;
+      const fee = getDeliveryFee();
+      // Build items list from basket (if basket order) or single product
+      const items = basket.length > 0
+        ? basket.map(i => ({ name: i.name, volume: i.volume, price: i.price }))
+        : [{ name: currentProduct.name, volume: currentProduct.volume, price: currentProduct.price }];
+      const orderData = {
+        product:              currentProduct.name,
+        volume:               currentProduct.volume,
+        price:                currentProduct.price,
+        name:                 document.getElementById('customer-name').value.trim(),
+        phone:                document.getElementById('customer-phone').value.trim(),
+        city:                 document.getElementById('customer-city').value.trim(),
+        address:              document.getElementById('customer-address').value.trim(),
+        notes:                (document.getElementById('customer-notes')?.value || '').trim(),
+        delivery_zone:        getDeliveryZoneName(),
+        delivery_fee:         fee,
+        total_with_delivery:  productPriceNum + fee,
+        items:                items
+      };
+      await submitOrder(orderData);
+    }
+
+    // ── Wire up cards ─────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.card-container[data-index]').forEach(card => {
+        const idx = parseInt(card.getAttribute('data-index'));
+        card.querySelectorAll('.btn-add-cart').forEach(btn => {
+          btn.addEventListener('click', e => { e.stopPropagation(); addToBasketByIdx(idx); });
+        });
+        card.querySelectorAll('.discover-link').forEach(lnk => {
+          lnk.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openDetailsPopup(idx); });
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Supabase Diagnostic</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  body { background: #0d0d0d; color: #fff; font-family: monospace; padding: 40px; }
+  h1 { color: #C9748A; }
+  pre { background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; font-size: 14px; }
+  .ok { color: #4cff88; }
+  .err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<h1>Supabase Order Insert Diagnostic</h1>
+<p>Running test insert...</p>
+<pre id="out">Waiting...</pre>
+<script>
+(async () => {
+  const out = document.getElementById('out');
+  try {
+    const db = window.supabase.createClient(
+      'https://xjekzyyznpuvtscxtalu.supabase.co',
+      'sb_publishable_91l-JaTSFb6eyfbUUAgIoQ_rycNPnPQ'
+    );
+    const { data, error } = await db.from('orders').insert([{
+      order_number: 'DIAG-001',
+      product_name: 'Test',
+      product_volume: '50ml',
+      price: '30',
+      customer_name: 'Test User',
+      phone: '0591234567',
+      city: 'test',
+      address: 'test address',
+      notes: '',
+      payment: 'cash',
+      status: 'pending',
+      delivery_zone: 'test zone',
+      delivery_fee: 20,
+      total_with_delivery: 50
+    }]);
+
+    if (error) {
+      out.className = 'err';
+      out.textContent = 'ERROR:\n' + JSON.stringify({
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        status: error.status,
+        statusCode: error.statusCode
+      }, null, 2);
+    } else {
+      out.className = 'ok';
+      out.textContent = 'SUCCESS!\n' + JSON.stringify(data, null, 2);
+    }
+  } catch(e) {
+    out.className = 'err';
+    out.textContent = 'EXCEPTION: ' + e.message + '\n' + e.stack;
+  }
+})();
+</script>
+</body>
+</html>
