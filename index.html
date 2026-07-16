@@ -389,22 +389,6 @@
       font-size: 14px;
     }
 
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none;
-      }
-      .navbar {
-        height: 70px;
-      }
-      .nav-logo {
-        width: 120px;
-        height: auto;
-      }
-      .hamburger-btn {
-        display: flex;
-      }
-    }
-
     /* Hamburger button */
     .hamburger-btn {
       display: none;
@@ -441,6 +425,22 @@
     }
     .hamburger-btn.open span:nth-child(3) {
       transform: translateY(-7px) rotate(-45deg);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .navbar {
+        height: 70px;
+      }
+      .nav-logo {
+        width: 120px;
+        height: auto;
+      }
+      .hamburger-btn {
+        display: flex;
+      }
     }
 
     /* Mobile dropdown menu */
