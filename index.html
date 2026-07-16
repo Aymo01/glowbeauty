@@ -400,6 +400,97 @@
         width: 120px;
         height: auto;
       }
+      .hamburger-btn {
+        display: flex;
+      }
+    }
+
+    /* Hamburger button */
+    .hamburger-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      order: -1;
+    }
+    .hamburger-btn:hover {
+      background: rgba(201,116,138,.1);
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--rose-light);
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .hamburger-btn.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .hamburger-btn.open span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Mobile dropdown menu */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 0;
+      left: 0;
+      background: rgba(13,7,15,.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(201,116,138,.2);
+      z-index: 8999;
+      flex-direction: column;
+      padding: 12px 0 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    .mobile-menu.open {
+      display: flex;
+    }
+    .mobile-menu a {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      padding: 14px 28px;
+      text-align: right;
+      border-bottom: 1px solid rgba(201,116,138,.08);
+      transition: color 0.2s, background 0.2s;
+    }
+    .mobile-menu a:last-child {
+      border-bottom: none;
+    }
+    .mobile-menu a:hover, .mobile-menu a:active {
+      color: var(--rose-light);
+      background: rgba(201,116,138,.07);
+    }
+    .mobile-menu .mobile-menu-cta {
+      margin: 16px 28px 0;
+      padding: 12px 24px;
+      background: linear-gradient(90deg,#8C3A52,#C9748A,#F2A8A8);
+      color: #1a0a12;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 10px;
+      border-bottom: none !important;
     }
 
     /* ==========================================================================
@@ -2037,9 +2128,20 @@
           <a href="#story">قصتنا</a>
         </div>
         <a href="#cta" class="btn btn-outline nav-btn">تسوّقي الآن</a>
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="القائمة" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu" role="navigation">
+    <a href="#products" class="mobile-menu-link">منتجاتنا</a>
+    <a href="#ingredients" class="mobile-menu-link">مكوناتنا</a>
+    <a href="#story" class="mobile-menu-link">قصتنا</a>
+    <a href="#cta" class="mobile-menu-cta mobile-menu-link">تسوّقي الآن</a>
+  </div>
 
   <!-- ==========================================================================
        SECTION 1: HERO
@@ -3175,6 +3277,37 @@
       }
       window.addEventListener('scroll', handleCtaZoom);
       handleCtaZoom();
+
+      // ==========================================================================
+      // HAMBURGER MOBILE MENU
+      // ==========================================================================
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const mobileMenu   = document.getElementById('mobileMenu');
+
+      function closeMobileMenu() {
+        mobileMenu.classList.remove('open');
+        hamburgerBtn.classList.remove('open');
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = mobileMenu.classList.toggle('open');
+        hamburgerBtn.classList.toggle('open', isOpen);
+        hamburgerBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+
+      // Close on link tap
+      mobileMenu.querySelectorAll('.mobile-menu-link').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+      });
+
+      // Close on outside tap
+      document.addEventListener('click', (e) => {
+        if (!mobileMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          closeMobileMenu();
+        }
+      });
 
       // ==========================================================================
       // GLOBAL SCROLL PROGRESS & NAVBAR STYLING ON SCROLL
