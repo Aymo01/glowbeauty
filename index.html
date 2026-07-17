@@ -454,40 +454,40 @@
         height: 70px;
       }
       .nav-logo {
-        width: 100px;
+        width: 110px;
         height: auto;
-      }
-      .hamburger-btn {
-        display: flex;
       }
       .nav-container {
         width: 100%;
-        padding: 0 12px;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 12px;
-      }
-      .nav-right {
-        grid-column: 2;
+        padding: 0 16px;
         display: flex;
         justify-content: center;
+        align-items: center;
+        position: relative;
+        height: 70px;
+      }
+      .nav-right {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
       }
       .nav-left {
-        grid-column: 1;
+        position: absolute;
+        left: 16px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
         align-items: center;
       }
       .nav-btn {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: 11px;
+        padding: 6px 10px;
         white-space: nowrap;
       }
-      #basket-toggle {
-        width: 32px;
-        height: 32px;
+      .hamburger-btn {
+        display: flex;
+        position: absolute;
+        right: 16px;
       }
     }
 
