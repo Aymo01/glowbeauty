@@ -4705,7 +4705,7 @@
         // For basket/bundle: volume summary
         const volumeVal = orderData.volume || (items.length > 1 ? `${items.length} منتجات` : 'طقم');
 
-        const { error } = await db.from('orders').insert([{
+        const response = await db.from('orders').insert([{
           order_number:          orderNumber,
           product_name:          orderData.product,
           product_volume:        volumeVal,
@@ -4723,12 +4723,17 @@
           items:                 items
         }]);
 
+        console.log("Full insert response:", response);
+        const { error } = response;
+
         if (error) throw error;
 
         showSuccess(orderNumber, orderData.total_with_delivery);
         clearBasket();
 
       } catch (err) {
+        const error = err;
+        console.error("ORDER ERROR:", JSON.stringify(error, null, 2));
         console.error('Order error:', err);
         btn.textContent = 'حدث خطأ، حاولي مرة ثانية';
         btn.disabled = false;
