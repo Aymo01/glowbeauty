@@ -474,9 +474,12 @@
       .nav-left {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
         order: 1;
+      }
+      #basket-icon {
+        font-size: 24px;
       }
       .nav-btn {
         font-size: 11px;
@@ -2075,6 +2078,10 @@
         </a>
       </div>
       <div class="nav-left">
+        <div id="basket-icon" onclick="openBasket()" aria-label="عرض السلة">
+          🛒
+          <span id="basket-badge">0</span>
+        </div>
         <div class="nav-links">
           <a href="#products">منتجاتنا</a>
           <a href="#ingredients">مكوناتنا</a>
@@ -3262,10 +3269,6 @@
   <!-- =====================================================================
        BASKET SYSTEM HTML
        ===================================================================== -->
-  <div id="basket-icon" onclick="openBasket()" aria-label="عرض السلة">
-    🛒
-    <span id="basket-badge">0</span>
-  </div>
 
   <div id="basket-overlay" onclick="closeBasket()"></div>
   
