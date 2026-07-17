@@ -452,7 +452,8 @@
       }
       .navbar {
         height: auto;
-        min-height: 70px;
+        min-height: 80px;
+        margin-bottom: 20px;
       }
       .nav-logo {
         width: 120px;
@@ -476,18 +477,22 @@
         flex-direction: column;
         gap: 6px;
         align-items: center;
-        order: 1;
+        order: 3;
       }
       #basket-icon {
         font-size: 24px;
+        order: 1;
+        margin-left: auto;
+        margin-right: auto;
       }
       .nav-btn {
         font-size: 11px;
         padding: 6px 10px;
+        order: 2;
       }
       .hamburger-btn {
         display: flex;
-        order: 3;
+        order: 1;
       }
     }
 
@@ -555,6 +560,7 @@
       background: radial-gradient(circle at 50% 50%, rgba(201, 116, 138, 0.08) 0%, var(--bg-dark) 100%);
       overflow: hidden;
       padding: 0;
+      margin-top: 30px;
     }
     
     .hero-logo-container {
