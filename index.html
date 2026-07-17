@@ -404,6 +404,8 @@
     .nav-btn {
       padding: 10px 24px;
       font-size: 14px;
+      position: relative;
+      z-index: 6000;
     }
 
     /* Hamburger button */
@@ -3760,6 +3762,14 @@
     }
     #basket-sidebar.open {
       transform: translateX(0);
+    }
+
+    @media (max-width: 768px) {
+      #basket-sidebar {
+        width: 100vw;
+        right: 0;
+        z-index: 7500;
+      }
     }
 
     .basket-header {
